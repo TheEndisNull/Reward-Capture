@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <script src="jspsych-6.2.0/jspsych.js"></script>
+    <script src="jspsych-6.2.0/plugins/jspsych-html-keyboard-response.js"></script>
+    <link rel="stylesheet" href="jspsych-6.2.0/css/jspsych.css">
+</head>
+
+<body></body>
+<script>
+
+var keys = jsPsych.randomization.shuffle(['z', 'm']) //////////////////////CHANGE FOR TROUBLESHOOTING//////////////////////////////
+
+var horSame = jsPsych.pluginAPI.convertKeyCodeToKeyCharacter(keys[0])
+var verDiff = jsPsych.pluginAPI.convertKeyCodeToKeyCharacter(keys[1])
+console.log(keys[0])
+console.log(keys[1])
+
+var trial_3 = {
+    type: 'html-keyboard-response',
+    stimulus: '<p style="color: ; font-size: 48px; font-weight: bold;">BLUE</p>',
+    choices: [keys[0],keys[1]],
+    prompt: '<p>No response allowed. 2s wait.</p>'
+  }
+
+  jsPsych.init({
+    timeline: [trial_3],
+    on_finish: function() {
+      jsPsych.data.displayData();
+    },
+    default_iti: 250
+  });
+   
+  </script>
+  
+  </html>

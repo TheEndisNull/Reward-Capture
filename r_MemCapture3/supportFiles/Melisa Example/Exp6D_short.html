@@ -1,0 +1,1207 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Psych Study</title>
+
+		<script  src= "jspsych-6.2.0/jspsych.js"> </script>
+		<script src="jspsych-6.2.0/plugins/jspsych-html-keyboard-response.js"></script>
+		<script src="jspsych-6.2.0/plugins/jspsych-image-keyboard-response.js"></script>
+		<script src="jspsych-6.2.0/plugins/jspsych-html-button-response.js"></script>
+		<script src="jspsych-6.2.0/plugins/jspsych-external-html.js"></script>
+		<script src="jspsych-6.2.0/plugins/jspsych-call-function.js"></script>
+		<script src="jspsych-6.2.0/plugins/jspsych-fullscreen.js"></script>
+		<script src="jspsych-6.2.0/plugins/jspsych-survey-text.js"></script>
+		<script src="jspsych-6.2.0/plugins/jspsych-survey-multi-select.js"></script>
+		<script src="jspsych-6.2.0/plugins/jspsych-survey-multi-choice.js"></script>
+		<script src="jspsych-6.2.0/plugins/jspsych-rdk.js"></script>
+		<script src="jspsych-6.2.0/plugins/jspsych-resize.js"></script>
+
+		<script src="jspsych-6.2.0/plugins/jspsych-instructions.js"></script>
+		<!-- <script src="trial_info_exp6_short.js"></script> -->
+		<script src="trial_info_exp6d.js"></script>
+		<link href="jspsych-6.2.0/css/jspsych.css" rel="stylesheet" type="text/css"></link>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+
+  </head>
+ <body>
+
+
+  </body>
+  
+<script>
+
+
+ function set_html_style_1() {
+    document.body.style.backgroundColor = "#D3D3D3" // background color
+    //document.body.style.color = 'black' // font color
+}
+
+
+
+var timeline=[];
+
+
+
+/// CONSENT FORM
+var consent_form = {
+  type:'external-html',
+  url: "http://labs.psychology.illinois.edu/meldir/fn_exps/consentform.html",
+  cont_btn: "start" // id of continue button, trial advances when this is clicked
+   
+};
+
+timeline.push(consent_form);
+
+
+//TO PUT DATA IN CSV//
+
+function prepdata(data) {
+  var datacsv = "";
+  var labels = Object.keys(data); //grabs all the properties of data
+
+  for (n = 0; n < labels.length; n++){
+    datacsv = datacsv + labels[n] + ','; // 'col1', 'col2'
+  }
+  datacsv = datacsv + '\n'; //next line
+
+  
+let ntoloop = data[Object.keys(data)[0]].length; //number of rows
+  
+
+  for (n = 0; n < ntoloop; n++){
+    for (var i in data){
+      if (data.hasOwnProperty(i)){
+        datacsv = datacsv + data[i][n] + ','; //in "str" + num, num is converted to a string.
+      }
+    }
+    datacsv = datacsv + '\n';
+  }
+
+  return datacsv;
+};
+
+
+////////////////// DEMOGRAPHIC FORM ////////////////////////////
+
+var data_demo = {
+	subNum_demo: [],
+	start_time: [],
+	today_date:[],
+	today_time:[],
+	age:[],
+	college:[],
+	gender:[],
+	ethnicity:[],
+	race:[],
+	health:[]
+ 
+ }
+ 
+var subNum_demo = jsPsych.randomization.randomID(10); //subject id will be different for demo and for experiment data
+var demofilename = "sub_demo_" + String(subNum_demo);
+
+
+//age, num years in college
+
+var demo1 = {
+  		type: 'survey-text',
+  		questions: [{prompt: "How old are you?"}, 
+  		  			{prompt: "How many years of college have you completed? (0=Freshman, 1=Sophomore, etc.)"}],
+		preamble: "<p> <strong>  DEMOGRAPHIC FORM </strong> </p>",
+		on_start: function(){
+				var today = new Date();
+				data_demo.start_time.push(today);// for time zone Tue Sep 29 2020 ...
+				data_demo.today_date.push(today.getFullYear() + '-' + (today.getMonth()+1) + '-' +today.getDate()); // 9/29/2020
+				data_demo.today_time.push(today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds()); // 12:15:10 pm
+		},		
+  		on_finish: function(data) {
+  			var d = JSON.parse(data.responses);
+			data_demo.subNum_demo.push(subNum_demo);
+  			data_demo.age.push(d.Q0);
+  			data_demo.college.push(d.Q1);
+  
+  		}
+	};
+
+//race--can choose more than one
+var demo2 = {
+		type: 'survey-multi-select',
+		questions:[{prompt: "Race: What race do you consider yourself to be?", options:["American Indian or Alaska Native", "Asian", "Black or African-American", "White", "Other"],required:true}],
+		preamble:"<p> <strong>  DEMOGRAPHIC FORM </strong> </p>",
+		on_finish: function(data){
+			var d = JSON.parse(data.responses);
+			data_demo.race.push(d.Q0);
+			
+			}
+		};
+ 
+ 
+//gender ethnicity health 
+var demo3 = {
+		type: 'survey-multi-choice',
+    	questions: [{prompt: "Gender: What best describes your gender?", options: ["Female", "Male", "Nonbinary/third gender", "Prefer not to say", "Other"], required:true}, 
+    		{prompt: "Ethnicity: Do you consider yourself to be Hispanic or Latino?", options: ["Yes", "No"], required:false}, 
+    		{prompt: "Health: How would you rate your overall health?", options: ["Much worse than average", "Somewhat worse than average", "Average", "Somewhat better than average", "Much better than average"], required:false}],
+		preamble:"<p> <strong>  DEMOGRAPHIC FORM </strong> </p>",
+		on_finish: function(data) {
+			var d = JSON.parse(data.responses);
+  			data_demo.gender.push(d.Q0);
+  			data_demo.ethnicity.push(d.Q1);
+  			data_demo.health.push(d.Q2);
+  		}
+};
+   
+
+timeline.push(demo1, demo2, demo3);
+  
+
+//save demographic data to server folder
+function saveDemoData(name, data){
+  var xhr = new XMLHttpRequest();
+  xhr.open('POST', 'exp_demo_writedata.php'); // 'write_data.php' is the path to the php file
+  xhr.setRequestHeader('Content-Type', 'application/json');
+  xhr.send(JSON.stringify({filename: name, filedata: data}));
+}
+
+function savethedemodata() {
+  //save cleaned data
+  saveDemoData(demofilename, prepdata(data_demo));
+}
+
+var save_demo_data = {
+  type: 'call-function',
+  func: savethedemodata
+}
+
+
+timeline.push(save_demo_data);
+
+/////////////////////////////////////////    -------------  DEMO END  ---------- //////////////////////////////////////////////////////////////////////////////
+
+    
+
+var subNum_demo = jsPsych.randomization.randomID(10);
+
+var SubNum = jsPsych.randomization.randomID(10);
+var datafilename = "sub_"+String(SubNum);
+
+//force into fullscreen
+timeline.push({
+  type: 'fullscreen',
+  fullscreen_mode: true,
+  on_start: set_html_style_1
+});
+
+
+timeline.push({
+  type: 'html-keyboard-response',
+  stimulus: '<div style= "font-size:20px;" <p> <strong> Welcome to the experiment! </strong><br> <p style="color:red; font-size:25px;"> Please do NOT exit full screen until you are done with the experiment. </p>'+
+			'<p style="color:red;"> The experiment will be canceled and your data will be lost if you try to go back or refresh the page at any time during the experiment.</p>'+
+			'<p style="color:red;"> Please rely on your memory and do NOT write anything down throughout the experiment. </p>'+
+			'<br>'+ 
+			'<p style="color:black;">Press any key to continue.</p> </span>'
+});
+
+var data_all = {
+  SubNum: [],
+  SubNum_demo: [], //delete later
+  
+  Exp_start_time: [],
+  Exp_today_date:[],
+  Exp_today_time:[],
+
+  TrialNum:[],
+  FaceID:[],
+  FaceImg:[],
+  Name:[],
+  Response:[],
+  NameAcc:[],
+  RespTime: [],
+  
+  StudyTrialNum:[],
+  StudyFaceID: [],
+  StudyFaceImg:[],
+  StudyFamCond:[],
+  StudyTime:[],
+  
+  TestTrialNum: [],
+  TestFaceID: [],
+  TestFaceImg: [],
+  TestFamCond: [],
+  TestStatusCond:[],	
+  TestResponse:[],
+  TestResponseTime:[], 
+  
+  Exp_end_time:[],
+  Distractor_1_duration:[],
+  Distractor_1_numT:[],
+  Distractor_1_acc:[],
+  Distractor_2_duration:[],
+  Distractor_2_numT:[],
+  Distractor_2_acc:[],
+  StudyButtonRespTime:[],
+  StudyButtonRespTime_mean:[],
+  q1:[],
+  q2:[],
+  q3:[]
+  };
+  
+ var preExposure_instructions = {
+            type: 'instructions',
+            pages: [
+                '<p>I want you to imagine that you just moved to a new neighborhood.</p>'+
+                '<p>In the first part of the experiment, you will be getting to know people in your neighborhood.</p>'+
+                '<p>You will be presented with their faces, one at a time, each for a few seconds.</p>'+
+                '<p>The faces will have a name printed above them.</p>'+
+                '<p>You will see the faces of your neighbors multiple times.</p>',
+                "<p>At each repetition of a neighbor's face, you will see a different image of that neighbor.</p>"+
+				'<p>For example, there might be changes in their hair style, viewpoint, clothing, or makeup.</p>'+
+				'<p>After the first presentation, you will be asked to recall the names from your memory.</p>'+
+                '<p>So be sure to learn the names!'+
+                '<p>When you can not remember the names, please make your best guess.'+
+                '<p>Click the "Next" button to start.</p>'
+            ],
+            show_clickable_nav: true,
+            post_trial_gap: 1000,
+			on_start: function(){
+					var today = new Date();
+					data_all.Exp_start_time.push(today);
+					data_all.Exp_today_date.push(today.getFullYear() + '-' + (today.getMonth()+1) + '-' +today.getDate());
+					data_all.Exp_today_time.push(today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds());
+					data_all.SubNum_demo.push(subNum_demo);
+			}
+        };
+
+timeline.push(preExposure_instructions); 
+  
+ ///////////////////////////////////////////
+ 
+ 
+
+ 
+ //////////////////////////////
+ 
+
+/*
+ 
+var block = 1;
+
+
+
+for (var i=0; i<6; i++) {
+
+//for (var i=0; i<pre_exp_faces.length; i++) {
+
+
+	var image_num = pre_exp_faces[i];
+	var image_name = names[image_num-1];
+		
+		//console.log(block);
+		if (i%4 == 0 ){//change 4 to 20 
+				block = block+1;
+			}	
+
+
+	if (i<pre_exp_faces.length/6){ // block 1
+
+		//face appears for 750 ms
+		var b1_p1 = {
+			type: 'html-keyboard-response',
+			stimulus: '<br>',
+			prompt: "<p> <img src=Faces_E6/" + image_num + "_" + img_order[block-1] + ".jpg </p>",
+			choices: jsPsych.NO_KEYS,
+			trial_duration: 750	//change to 750
+			};
+		
+		timeline.push(b1_p1);
+		
+		// name appears together with face, and they stay on screen for 3250 ms		
+		var b1_p2 = {
+			type: 'html-keyboard-response',
+			stimulus: image_name.toUpperCase(),
+			prompt: "<p> <img src=Faces_E6/" + image_num + "_" + img_order[block-1] + ".jpg </p>",
+			choices: jsPsych.NO_KEYS,
+			trial_duration: 3250 //3250
+			};
+			
+		timeline.push(b1_p2);	
+		
+		
+		//name disappears and the subject is asked to type in the name
+		var b1_p3 = {
+			type: 'survey-text',
+			questions: [
+			{prompt: "<div <p style = 'position: relative; top: 3px;'><img src=Faces_E6/" + image_num + "_" + img_order[block-1] + ".jpg  </p></div>", required:true}
+			],
+			preamble: "<div style='position: relative; top: 0px;'><p><br><br>Please type in the name of this person and press Enter </p></div>",
+			data:{
+				trial_num:i+1,
+				face: image_num + "_" + img_order[block-1],
+				face_id: image_num,
+				face_img:img_order[block-1],
+				name:image_name		
+			
+			},
+			on_finish: function(data){
+				    var acc = false;
+					
+					if (data.name.toUpperCase() == JSON.parse(data.responses).Q0.toUpperCase()){
+								acc = true;
+							}
+					data.accuracy = acc;
+														 
+					data_all.SubNum.push(SubNum);
+					data_all.TrialNum.push(data.trial_num);
+					data_all.FaceID.push(data.face_id);
+					data_all.FaceImg.push(data.face_img);
+					data_all.Name.push(data.name);
+					data_all.Response.push(JSON.parse(data.responses).Q0.toUpperCase());
+					data_all.NameAcc.push(data.accuracy);
+					data_all.RespTime.push(data.rt);
+							
+						}
+
+
+			};
+			
+		timeline.push(b1_p3);	
+		
+		//the correct name is given to the subject
+		
+		var b1_p4 = {
+			type: 'html-keyboard-response',
+			stimulus: function(){
+				
+					image_name = jsPsych.data.getLastTrialData().values()[0].name;
+					
+					pre_exp_face = jsPsych.data.getLastTrialData().values()[0].face;
+					//pre_exp_face = image_num + "_" + img_order[block-1];
+				 
+				 var feedback_text = '<span style="color:red; position: relative; top: 0px; font-size:20px;">Incorrect.</span>';
+				 feedback_text+= "<div style='position: relative; top: -10px;'> <p> This is <strong>" + image_name + "</strong>. </p>";
+				 feedback_text+= "<div style='position: relative; top: -14px;'> <p> <img src=Faces_E6/" + pre_exp_face+ ".jpg> </p>";
+				 
+				 var last_resp_acc = jsPsych.data.getLastTrialData().values()[0].accuracy;
+				// console.log("last_resp_acc: " + last_resp_acc);
+				 
+				 if(last_resp_acc == true){
+					feedback_text = '<span style="color:green; position: relative; top: 0px; font-size:20px;"> Correct! </span>';
+					feedback_text+= "<div style='position: relative; top: -10px;'> <p> This is <strong>" + image_name.toUpperCase() + "</strong>.<p>";
+					feedback_text += "<div style='position: relative; top: -14px;'> <p><p> <img src=Faces_E6/" + pre_exp_face + ".jpg> </p>"
+
+				}
+				 
+				 			
+				return feedback_text; 
+			
+				},
+
+			 trial_duration:1500,
+			 post_trial_gap: 750
+			}
+
+			timeline.push(b1_p4);	
+	
+		
+		}else{//block 2-6
+	
+		//ask the subject to type in the name
+			var b2_p1 = {
+				type: 'survey-text',
+				questions: [
+				{prompt: "<div <p style = 'position: relative; top: 3px;'><img src=Faces_E6/" + image_num + "_" + img_order[block-1] + ".jpg></p></div>", required:true}
+
+				],
+				preamble: "<div style='position: relative; top: 0px;'><p><br><br>Please type in the name of this person and press Enter </p></div>", 
+			
+				data: {
+					name: image_name,
+					trial_num:i+1,
+					face: image_num + "_" + img_order[block-1],
+					face_id: image_num,
+					face_img: img_order[block-1]
+				},
+				on_finish: function(data){
+							var acc = false;
+							//console.log("resp: " + data.accuracy);
+							if (data.name.toUpperCase() == JSON.parse(data.responses).Q0.toUpperCase()){
+									acc = true;
+								}
+								data.accuracy = acc;
+								//console.log("acc: " + data.accuracy);
+								
+								data_all.SubNum.push(SubNum);
+								data_all.TrialNum.push(data.trial_num);
+								data_all.FaceID.push(data.face_id);
+								data_all.FaceImg.push(data.face_img);
+								data_all.Name.push(data.name);
+								data_all.Response.push(JSON.parse(data.responses).Q0.toUpperCase());
+								data_all.NameAcc.push(data.accuracy);
+								data_all.RespTime.push(data.rt);
+										
+								
+							} 
+			} 
+			
+			timeline.push(b2_p1);
+			//console.log(image_num+"_"+img_order[block-1]); 
+			
+			//give feedback, correct or incorrect and then name
+			var b2_p2 = {
+			
+				type: 'html-keyboard-response',
+				stimulus: function(){
+					
+					image_name = jsPsych.data.getLastTrialData().values()[0].name;
+					pre_exp_face = jsPsych.data.getLastTrialData().values()[0].face;
+					
+					var last_resp_acc = jsPsych.data.getLastTrialData().values()[0].accuracy;
+					
+				//if false
+					var feedback_text = '<span style="color:red; position: relative; top: 0px; font-size:20px;">Incorrect.</span>';
+					 feedback_text+= "<div style='position: relative; top: -10px;'> <p> This is <strong>" + image_name.toUpperCase() + "</strong>. </p>";				 ;
+					 feedback_text+= "<div style='position: relative; top: -14px;'> <p> <img src=Faces_E6/" + pre_exp_face+ ".jpg> </p>";
+				 
+					 if(last_resp_acc == true){
+						feedback_text = '<span style="color:green; position: relative; top: 0px; font-size:20px;"> Correct! </span>';
+						feedback_text+= "<div style='position: relative; top: -10px;'> <p> This is <strong> " + image_name.toUpperCase() + "</strong>. </p>";
+						feedback_text += "<div style='position: relative; top: -14px;'> <p><p> <img src=Faces_E6/" + pre_exp_face + ".jpg> </p>"
+						}
+				 
+				 			
+					return feedback_text; 
+			
+					},
+				
+				trial_duration:1500,
+				post_trial_gap: 750
+			};
+
+			timeline.push(b2_p2);	
+
+		
+	}		
+};
+
+
+var end_fam_time = [];	
+
+
+  
+ //console.log('end_fam_time: ' + end_fam_time);
+ 
+ var distractor_instructions_1 = {
+		  type: 'html-keyboard-response',
+		  stimulus: "<p> In the next 2 minutes, you will see a number of addition and multiplication problems and their answers. </p>" +
+					"<p> For example, you might see a problem like this: <strong>(10 - 0) x 2 = 20</strong> </p>" +
+					"<p> For each problem, you will judge whether the answer is correct or incorrect by clicking on the corresponding button. </p>"+
+					"<p> When 2 minutes are over, the next phase will begin.</p>"+
+					'<br> <br> <br> <p> Press any key to continue. <p>',
+
+			post_trial_gap:1000,
+			on_start: function(){
+						end_fam_time = performance.now();
+
+					}
+ };
+
+timeline.push(distractor_instructions_1);
+
+ ///////////////////////START DISTRACTOR 1/////////////////////////////////////
+ 
+ 
+ var math_choice = [];
+ var counter = 0; // total number of questions answered
+ var numcor = 0;
+ var overall_acc = 0;
+ 
+ var math_procedure = {
+	timeline: [
+		{
+		 type: 'html-button-response',
+		 stimulus: function(){
+			return '<p>' + genProb() + '<br></p>';
+		 },
+		 choices: jsPsych.NO_KEYS,
+		 choices:['Correct', 'Incorrect'],
+	 	on_finish: function(data){
+			
+			math_choice = data.button_pressed; // 0 = correct, 1 = incorrect
+			//console.log("choice: " + choice);
+			counter = counter +1;
+			
+			if (pick==math_choice){
+				numcor = numcor+1;
+				overall_acc = Math.round((numcor/counter)*100);
+				
+			}else{
+				numcor = numcor;
+				overall_acc = Math.round((numcor/counter)*100);
+			};
+			//console.log("numcor: " + numcor);
+			//console.log("overall_acc: " + overall_acc);
+			
+			}	
+		
+		},
+		
+		{
+			type:'html-keyboard-response',
+			stimulus: ' ',
+			trial_duration: 1000,
+			choices: jsPsych.NO_KEYS,
+			on_start: function(trial){
+
+				if( (math_choice==0 && pick==0) || (math_choice==1 && pick==1) ){
+					trial.stimulus= " <font color='green';>Good Job!</font> <p> SCORE: " + overall_acc + "% </p> "
+				}else{
+					trial.stimulus= "<font color='red'> You'll do better next time! </font> <p> SCORE: " + overall_acc + "% </p>"
+				}
+				
+			}
+		}
+		
+	]
+		
+ };
+
+ 
+ //add feedback
+ var time_elapsed_1 = 0;
+ var time_elapsed_2 = 0;
+ var time_elapsed_3 = 0;
+ 
+ var loop_trials_1 = { //distractor task
+  timeline: [math_procedure],
+  loop_function: function(){
+	time_elapsed_1 = performance.now() - end_fam_time;
+	
+	if (time_elapsed_1 >= 0.1*60*1000){ //if XX ms have elapse since the start of loop_trials, end it
+		return false;
+	}else{
+		return true;
+	}
+  },
+  
+ on_finish: function(){		
+	data_all.Distractor_1_numT[0]=counter;
+	data_all.Distractor_1_acc[0]=overall_acc;
+	data_all.Distractor_1_duration[0]= time_elapsed_1;
+	
+ }
+};
+
+timeline.push(loop_trials_1);
+
+
+///////////////////////END DISTRACTOR 1/////////////////////////////////////
+var rdk_counter = 0;
+
+ //instructions block
+var distractor_instructions_2 = {
+  type: 'instructions',
+  pages: [
+    "<p> Now you will play a game for the next 2 minutes. In this game, you will be making judgments about the movement of particles in a dish.</p>" +
+    "<p> There will be a lot of particles in the dish, and many of them will be moving in random directions.</p>"+
+    "<p> But a subset of them will all be moving to the left or to the right. </p>"+
+    "<p> Your job is to decide if that subset of particles are moving left or right.</p>",
+
+    "Here is an example of a dish where the particles are moving left."
+  ],
+  show_clickable_nav : true,
+  on_start: function(){
+		
+		end_math_time = performance.now(); //when pre-exposure ends
+		data_all.Distractor_1_duration[1]= performance.now() - end_fam_time;
+		//console.log(end_pre_exp_time);
+ }
+};
+ 
+ 
+ 
+var distractor_instructions_3 = {
+	type: 'instructions',
+	pages: [
+	'Here is an example of a dish where the particles are moving right.'
+	],
+	
+	show_clickable_nav: true
+	};
+	
+var distractor_instructions_4 = {
+	type: 'instructions',
+	pages: [
+    "<p> Because you will see the dishes for very short durations, it will sometimes be difficult to figure out the direction of the particles. </p>"+
+	"<p> Try to make your best guess. </p>"+
+    "<p> Press next to start the game. </p>"
+  ],
+  show_clickable_nav : true
+	};
+	
+//example moving left
+var ex1 = {
+  type: "rdk",
+  post_trial_gap: 0,
+  number_of_dots: 200,
+  RDK_type: 3,
+  aperture_type: 1, //circle
+  aperture_width: 300,
+  border: true,
+  response_ends_trial: false,
+  border_thickness: 3,
+  background_color: "#D3D3D3",
+  dot_color: "black",
+  correct_choice: ["l"],
+  coherent_direction: 180,
+  trial_duration: 4000,
+  on_start: function(trial) {
+    trial.coherence = 0.5;
+    trial.aperture_center_x = window.innerWidth/2;
+    //console.log(all_trials_holes[t]);
+    //console.log(trial.aperture_center_x);
+    trial.aperture_center_y = window.innerHeight/2;
+    //trial.coherent_direction = design[t].direction;
+  }
+};
+ 
+
+
+ 
+ var ex2 = {
+  type: "rdk",
+  post_trial_gap: 0,
+  number_of_dots: 200,
+  RDK_type: 3,
+  aperture_type: 1, //circle
+  aperture_width: 300,
+  border: true,
+  response_ends_trial: false,
+  border_thickness: 3,
+  background_color: "#D3D3D3",
+  dot_color: "black",
+  correct_choice: ["l"],
+  coherent_direction: 0,
+  trial_duration: 4000,
+  on_start: function(trial) {
+    trial.coherence = 0.5;
+    trial.aperture_center_x = window.innerWidth/2;
+    //console.log(all_trials_holes[t]);
+    //console.log(trial.aperture_center_x);
+    trial.aperture_center_y = window.innerHeight/2;
+    //trial.coherent_direction = design[t].direction;
+  }
+};
+ 
+timeline.push(distractor_instructions_2, ex1, distractor_instructions_3, ex2, distractor_instructions_4);
+ 
+var direction = [180, 0];
+
+var coherence_level = [];
+
+var coh_dir = [];
+var dir  = 'right';
+var choice =[];
+
+
+
+//30 levels from 1% to 30%
+for (i = 1; i<=30; i+=1) {
+  coherence_level.push(i/100);
+}
+
+
+var rdk_fixation = {
+  type: "rdk",
+  post_trial_gap: 0,
+  number_of_dots: 0,
+  RDK_type: 3,
+  aperture_type: 1, //circle
+  aperture_width: 300,
+  border: true,
+  fixation_cross:true,
+  response_ends_trial: false,
+  border_thickness: 3,
+  background_color: "#D3D3D3",
+  dot_color: "black",
+  correct_choice: ["l"],
+  coherent_direction: function(){shuffle(direction)[0]},
+  trial_duration: 1000,
+  on_start: function(trial) {
+    //trial.coherence = shuffle(coherence_level)[0];
+    trial.aperture_center_x = window.innerWidth/2;
+    //console.log(all_trials_holes[t]);
+    //console.log(trial.aperture_center_x);
+    trial.aperture_center_y = window.innerHeight/2;
+    //trial.coherent_direction = design[t].direction;
+
+	}
+  };
+  
+  
+  
+var rdk_trial = {
+  type: "rdk",
+  post_trial_gap: 0,
+  number_of_dots: 200,
+  RDK_type: 3,
+  aperture_type: 1, //circle
+  aperture_width: 300,
+  border: true,
+  response_ends_trial: false,
+  border_thickness: 3,
+  background_color: "#D3D3D3",
+  dot_color: "black",
+  //coherent_direction: shuffle([0,180])[0],//0
+  correct_choice: ['l'],
+  trial_duration: 500,
+  
+
+  on_start: function(trial) {
+	trial.coherent_direction= shuffle([0,180])[0],//0
+	coh_dir = trial.coherent_direction;
+	//console.log("coh_dir rdk trial: " + coh_dir);
+	//console.log("trial.coherent_direction: " + trial.coherent_direction);
+    trial.coherence = shuffle(coherence_level)[0];
+	//console.log("coh lev rdk trial: " + trial.coherence);
+    trial.aperture_center_x = window.innerWidth/2;
+	//console.log("coh dir: "  +  trial.coherent_direction);
+
+    //console.log(all_trials_holes[t]);
+    //console.log(trial.aperture_center_x);
+    trial.aperture_center_y = window.innerHeight/2;
+    //trial.coherent_direction = design[t].direction;
+
+	
+	if (trial.coherent_direction == 180){
+		dir = "left";
+	}else{
+		dir = "right";
+	}
+
+  }
+ };
+  
+var overall_acc_rdk=0;
+
+var numcor_rdk=0;
+
+ var response_trial = {
+  type: 'html-button-response',
+  stimulus: 'What direction do you think the dots were moving?',
+  choices: ['Left', 'Right'],
+  on_start: function(trial) {
+	trial.windowHeight = window.innerHeight;
+    trial.CenterY = window.innerHeight*(1/2);
+    
+  },
+  on_start: set_html_style_1,
+  on_finish: function(data) {
+  
+		rdk_counter = rdk_counter +1;
+		
+		choice = data.button_pressed;
+		
+		if ( (choice==0 && coh_dir == 180) || (choice==1 && coh_dir == 0) ){
+			
+			numcor_rdk = numcor_rdk+1;
+			overall_acc_rdk = Math.round((numcor_rdk/rdk_counter)*100);
+
+			}else{
+				numcor_rdk = numcor_rdk;
+				overall_acc_rdk = Math.round((numcor_rdk/rdk_counter)*100);
+
+			}
+		}
+			
+  };
+
+  
+var feedback_trial = {
+	type: 'html-keyboard-response',
+	stimulus: '',
+	trial_duration:1500,
+	on_start:function(trial){
+		if ( (choice==0 && coh_dir == 180) || (choice==1 && coh_dir == 0) ){
+			trial.stimulus = "<font color='green'>Correct!</font><p>The dots were moving " + dir + ".</p> <p> SCORE: " + overall_acc_rdk + "% </p>";
+
+		}else{
+			trial.stimulus = "<font color='red'>Incorrect!</font><p>The dots were moving " + dir + ".</p> <p> SCORE: " + overall_acc_rdk + "% </p>";
+		}
+	}
+
+};
+
+var loop_trials_2 = { //distractor task
+  timeline: [rdk_fixation, rdk_trial, response_trial, feedback_trial],
+  loop_function: function(){
+		time_elapsed_2 = performance.now() - end_math_time;
+	
+	if (time_elapsed_2 >= 0.1*60*1000){ //if XX ms have elapsed since the start of loop_trials, end it
+		return false;
+	}else{
+		return true;
+	}
+  },
+  
+	on_finish: function(){		
+		data_all.Distractor_1_numT[1]=rdk_counter;
+		data_all.Distractor_1_acc[1]=overall_acc_rdk;
+		data_all.Distractor_1_duration[2]= time_elapsed_2;
+		}
+};
+
+timeline.push(loop_trials_2); //distractor task after pre_exposure
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+
+var ready = [];
+
+//third, nineth, twelfth, and seventeenth face
+
+//SHOW STUDY INSTRUCTIONS
+var study_instructions = {
+		
+      type: "html-keyboard-response",
+      stimulus: 
+				'<p>In this phase, you will see a series of people who have committed crimes.</p>'+	
+				'<p>You will know some of these people from the neighborhood, that is, you saw them in the previous set of faces.</p>' +
+				'<p>Some of them will be people that you have not seen before.</p>'+
+				'<p>Regardless of whether you know them from the neighborhood or not, </p>'+
+				'<p><strong>please try your best to remember all the people that you will see in this phase,  </strong></p>' +
+			 	'<p><strong> and remember that they are criminals. </strong> </p>'+
+				'<p> Later, your memory will be tested for these criminals. </p>'+
+				
+				'<br> <br> <br> <p> Press any key to continue<p>',
+			 
+			post_trial_gap:1000,
+			on_start: function(){
+				data_all.Distractor_1_duration[3]=performance.now() - end_math_time;
+				data_all.Distractor_1_duration[4]=performance.now() - end_fam_time;
+			}
+			 
+		};
+
+var ready_to_study ={
+	type: 'html-button-response',
+	stimulus: 'Are you ready to start studying?',
+	choices: ['No, show me the instructions again.', 'Yes, let me start!'],
+	on_finish: function(data){
+		ready= data.button_pressed;
+		data_all.Distractor_1_duration[2]=performance.now() - end_fam_time;
+	}
+
+};
+
+var check_resp = {
+	timeline: [study_instructions],
+	conditional_function: function(){
+			if (ready == 0) {
+				return true;
+			} else {
+			 return false;
+			}
+	}
+};
+
+
+	
+timeline.push(study_instructions,ready_to_study, check_resp);	//study instructions 
+
+//third, nineth, twelfth, and seventeenth face
+//1, 3
+var button_trials = [1,3]; //after first face and after third face (index=1,2)
+//var button_trials = [3, 9, 12, 17];
+
+var j= 0;
+
+
+var study_check_button =  {
+	type:'html-button-response',
+	stimulus:'Please press the button below now.',
+	choices:['Continue'],
+	post_trial_gap:0,
+	on_finish: function(data){
+		data_all.StudyButtonRespTime.push(data.rt)
+	}
+
+}
+////////////////////////////////////STUDY PHASE///////////////////////////
+
+for (var i=0; i<study_faces.length; i++){
+
+	if (i == button_trials[j]) {
+		timeline.push(study_check_button);
+		j=j+1;
+		console.log('index: '+ i);
+	}
+
+	var study_image_num = study_faces[i]+ "_" + img_order[6]; 
+		var study_p ={
+				type: "html-keyboard-response",
+				stimulus: "<p> <img src=Faces_E6/" + study_image_num+ ".jpg </p>",
+				trial_duration:4000,
+				choices:jsPsych.NO_KEYS,
+				post_trial_gap:500,
+				data:{
+					s_trial_num: i+1,
+					s_face_id:study_faces[i],
+					s_face_img:img_order[6],
+					s_fam_cond:study_order[i] //0= unfamiliar, 1=familiar
+				},
+				on_finish: function(data){
+					data_all.StudyTrialNum.push(data.s_trial_num);
+					data_all.StudyFaceID.push(data.s_face_id);
+					data_all.StudyFaceImg.push(data.s_face_img);
+					data_all.StudyFamCond.push(data.s_fam_cond);
+					data_all.StudyTime.push(4000);
+				
+			}
+		};
+		
+		timeline.push(study_p);
+
+}
+
+var end_study_time = [];	
+
+////////////////// END STUDY PHASE //////////////////////////////
+
+
+ /////////////////////////////////////    START DISTRACTOR /////////////////////////////////////////////////
+
+
+ var distractor_after_study = {
+	type: 'instructions',
+	pages:["<p> The study phase is over. Now you will give another short break for 2 minutes.</p>"+
+		   "<p> During this break, you will again play the dot game you played earlier.</p>" +
+		   "<p> Press NEXT to start the game. </p>"],
+	show_clickable_nav: true,
+	on_start: function(){
+		end_study_time= performance.now();
+		data_all.StudyButtonRespTime_mean.push(getAvg(data_all.StudyButtonRespTime)); //change to 0,1,2,3
+		//console.log("on_s end study time: " + end_study_time);
+	}
+			   
+};
+
+timeline.push(distractor_after_study);
+
+
+var loop_trials_3 = { //distractor task
+  timeline: [rdk_fixation, rdk_trial, response_trial, feedback_trial],
+  loop_function: function(){
+		time_elapsed_3 = performance.now() - end_study_time;
+	
+	if (time_elapsed_3 >= 1*60*1000){ //if XX ms have elapsed since the start of loop_trials, end it
+		return false;
+	}else{
+		return true;
+	}
+  },
+  
+	on_finish: function(){		
+		data_all.Distractor_2_numT[0]=rdk_counter;
+		data_all.Distractor_2_acc[0]=overall_acc_rdk;
+		data_all.Distractor_2_duration[0]= time_elapsed_3;
+		}
+};
+
+timeline.push(loop_trials_3); 
+
+
+
+
+
+/////////////////////////////////////    END DISTRACTOR 2 /////////////////////////////////////////////////
+ 
+
+ var test_instructions = {
+            type: 'instructions',
+            pages: [
+                '<p>Now I will test your memory for the criminals you just saw. </p>'+
+                '<p>For each face I show you, you will tell me how sure you are that the face belongs to a criminal or to an innocent person.</p>'+
+                '<p>Now remember: Only some of the people from the neighborhood were criminals.</p>'+
+				'<p>Again: even though the images you see will include people you have already seen, </p>' +
+				'<p>they will be different images than the ones you saw previously. </p>',
+				
+				'<p>If you remember having seen the face in the list of criminals, click on one of the three buttons labeled <strong>Criminal</strong>.</p>'+
+                '<p>If you are sure that the person is a criminal, click on the button labeled <strong> Sure Criminal</strong>.</p>'+
+                '<p>If you are less sure, click on the <strong>Maybe Criminal</strong> button.</p>'+
+                '<p>If you are guessing, click on the <strong>Guess Criminal</strong> button.</p>',
+				
+				'<p>If you do not remember having seen a face in the list of criminals, click on one of the buttons labeled <strong>Innocent</strong>.</p>'+
+				'<p>If you are very sure that you DID NOT see the face among the criminals, click on <strong>Sure Innocent</strong>.</p>'+
+                '<p>If you are less sure, click on <strong>Maybe Innocent</strong>.</p>'+
+                '<p>If you are guessing click on <strong>Guess Innocent</strong>.</p>'+
+                '<br><br><p>Click the "Next" button to start.</p>'
+            ],
+            show_clickable_nav: true,
+            post_trial_gap: 1000,
+			on_start: function(){
+					data_all.Distractor_2_duration[1]=performance.now() - end_study_time;
+			
+			}
+
+        };
+
+timeline.push(test_instructions);
+
+////////////////////////////////////TEST PHASE///////////////////////////
+
+
+for (var i=0; i<2; i++){
+//for (var i=0; i<test_faces.length; i++){
+
+var test_image_num = test_faces[i]+ "_" + img_order[7]; 
+
+	var test_p = {
+		type: 'html-button-response',
+		stimulus:'<p> <img src = Faces_E6/' + test_image_num + '.jpg </p>',
+		prompt: '<div> <p> Is this a criminal?</p></div>',
+		choices: ['Sure Innocent', 'Maybe Innocent', 'Guess Innocent', 'Guess Criminal', 'Maybe Criminal', 'Sure Criminal'],
+		margin_vertical:'3px',
+		post_trial_gap:500,
+		data: {
+			test_trial_num: i+1,
+			test_face_id: test_faces[i],
+			test_face_img:img_order[7],
+			test_fam_cond: fam_test[i],//same-different context condition
+			test_status_cond: status_test[i]
+		},
+		
+		on_finish: function(data){
+			data_all.TestTrialNum.push(data.test_trial_num);
+			data_all.TestFaceID.push(data.test_face_id);
+			data_all.TestFaceImg.push(data.test_face_img);
+			data_all.TestFamCond.push(data.test_fam_cond);
+			data_all.TestStatusCond.push(data.test_status_cond);
+			data_all.TestResponse.push(data.button_pressed);
+			data_all.TestResponseTime.push(data.rt);
+			
+		}
+		
+	};
+
+timeline.push(test_p);
+
+};
+
+*/
+
+var end_exp_q1 = {
+  		type: 'survey-multi-choice',
+  		questions: [{prompt: "<p> As you have probably noticed, the faces you saw belong to celebrities from different countries. <br> " +
+						       "Have you recognized any of these people from before taking part in this study? </p>", options:["Yes", "No", "Not Sure"], required:true }], 
+  		  
+		preamble: "<p> <strong>  THANK YOU FOR YOUR PARTICIPATION! </strong> </p>",
+	
+  		on_finish: function(data) {
+  			var d = JSON.parse(data.responses);
+			data_all.q1.push(d.Q0);
+  
+  		}
+	};
+
+
+var end_exp_q2 = {
+  		type: 'survey-text',
+  		questions: [{prompt: "<p> If you know any of the people you saw, can you provide any details <br> such as their name, a movie they acted in, etc."+
+							   "for each person you might have recognized? <br> </p>", required:true }, 
+  		  			{prompt: "Any additional comments? <br>"}],
+		preamble: "<p> <strong>  THANK YOU FOR YOUR PARTICIPATION! </strong> </p>",
+	
+  		on_finish: function(data) {
+  			var d = JSON.parse(data.responses);
+			data_all.q2.push(d.Q0);
+  			data_all.q3.push(d.Q1);
+  
+  		}
+	};
+	
+	timeline.push(end_exp_q1, end_exp_q2);
+	
+var prepped_data = prepdata(data_all);
+   
+
+
+//save data to server folder
+function saveData(name, data){
+  var xhr = new XMLHttpRequest();
+  xhr.open('POST', 'exp6_writedata.php'); // 'write_data.php' is the path to the php file
+  xhr.setRequestHeader('Content-Type', 'application/json');
+  xhr.send(JSON.stringify({filename: name, filedata: data}));
+}
+
+
+
+function savethedata() {
+  //save cleaned data
+  saveData(datafilename, prepdata(data_all));
+}
+
+var save_data = {
+  type: 'call-function',
+  func: savethedata,
+  
+	on_start: function(){
+			var today = new Date();
+			data_all.Exp_end_time.push(today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds());
+
+	
+	}
+}
+
+timeline.push(save_data);
+
+timeline.push({
+  type: 'fullscreen',
+  fullscreen_mode: false,
+  on_start: set_html_style_1
+});
+
+timeline.push({
+  type: 'html-keyboard-response',
+  stimulus: '<div style= "font-size:20px;" <p> <strong> DONE YOOOOOO!</strong><br> '
+});
+
+
+var debrief_form = {
+	type: 'external-html',
+	url: "http://labs.psychology.illinois.edu/meldir/fn_exps/debriefform_E6.html",
+	cont_btn:"end" //the id of the END EXPERIMENT button on the debriefing form
+};
+
+timeline.push(debrief_form);
+
+//to preload all images
+
+
+
+
+var face_images = new Array(64); //change to 40*8 = 320
+
+var ind = 0;
+
+for (var i=1; i<9; i++){
+	for (var n=1; n<9; n++){
+		
+		face_images[ind]= "Faces_E6/"+i+"_"+n+".jpg";
+		ind=ind+1;
+		}
+	
+	}
+
+
+jsPsych.init({
+      timeline: timeline,
+	  preload_images: face_images,
+	  override_safe_mode:true
+ 
+	});
+		
+
+
+</script>
+</html>
