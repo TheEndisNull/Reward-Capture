@@ -246,42 +246,24 @@ Select tgt number
 
 select distractor numb
 */
-function drawVDACtest(tgtPos, tgtCol, tgtDir) {
+function drawVDACtest(tgtPos, tgtNum, tgtDir) {
     var cX = [.26 * ht, .0 * ht, -.26 * ht, -.26 * ht, .0 * ht, .26 * ht]
     var cY = [.15 * ht, .30 * ht, .15 * ht, -.15 * ht, -.30 * ht, -.15 * ht]
     var cR = [.1 * ht, .09 * ht]
     //Shuffles the order of colored circles, inserts target color
 
-    var disractArr = [0,1,2,3,4,5,6,7,8,9]
-    var newDistractArr = disractArr.filter(a => a !==tgtNum)
-
+    var disractArr = [0,1,2]
+    var disractArr = disractArr.filter(a => a !==tgtNum)
+    var disractArr = disractArr[disractArr.length * Math.random() | 0]
     
     
     console.log(disractArr)
     console.log(newDistractArr)
 
-    let array = [1,2,'deleted',4,5,'deleted',6,7]
-let newarr = array.filter(a => a !== 6)
-    var colArr = jsPsych.randomization.shuffle(['cyan', 'blue', 'black', 'magenta', 'yellow']);
-    if (tgtCol == 'r') {
-        colArr.splice(tgtPos, 0, 'red')
-    } else if (tgtCol == 'g') {
-        colArr.splice(tgtPos, 0, 'lime')
-    }
-    //Shuffles the order of diaganol lines, inserts target line
-    var angle = [];
-    for (let i = 0; i < 5; i++) {
-        if (Math.random() < 0.5) {
-            angle[i] = 45
-        } else {
-            angle[i] = -45
-        }
-    }
-    if (tgtDir == 'h') {
-        angle.splice(tgtPos, 0, '90')
-    } else if (tgtDir == 'v') {
-        angle.splice(tgtPos, 0, '0')
-    }
+    var colArr = [disractArr,disractArr,disractArr,disractArr,disractArr];
+    colArr.splice(tgtPos, 0, tgtNum)
+    
+
     //Inserts circles and lines onto page, adds fixation cross and text. Returns stimulus
     var arrVDACstim = []
     arrVDACstim = arrVDACstim.concat(fixationStim); 
@@ -296,15 +278,6 @@ let newarr = array.filter(a => a !== 6)
     */
     for (i = 0; i < 6; i++) {
         arrVDACstim.push({
-            obj_type: 'circle',
-            startX: cX[i], 
-            startY: cY[i],
-            radius: cR[0],
-            line_color: colArr[i],
-            fill_color: 'grey',
-            line_width: 7,
-            origin_center: true,
-        }, {
             obj_type: 'line',
             startX: cX[i], 
             startY: cY[i],
