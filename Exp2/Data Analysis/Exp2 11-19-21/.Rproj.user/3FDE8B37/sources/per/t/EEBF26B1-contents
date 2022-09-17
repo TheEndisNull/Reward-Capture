@@ -1,0 +1,112 @@
+library(tidyverse)
+subCnt = 5 #Subject Count: number of subjects
+
+test <- tibble(
+  subject = c(1:subCnt),
+  betwn = 1,
+  depVar = c(rep(c(1), times = subCnt))
+)
+
+
+P <- 2
+
+N <- 4
+S <- matrix(nrow = 1, ncol = N)
+rownames(S) <- c('latentVar Strength')
+colnames(S) <- c('S1', 'S2', 'S3', 'S4')
+for (i in 1:N) {
+  S[1, i] <- 0.7 * (i / N) + .15
+}
+
+A <- matrix(nrow = 1, ncol = 2 * N)
+colnames(A) <- c('A1', 'A2', 'A3', 'A4', 'B1', 'B2', 'B3', 'B4')
+rownames(A) <- c('(S)trength to points')
+for (i in 1:N) {
+  A[1, i] <- S[1, i] - .35 * ((P - .5) / N)
+}
+for (i in 1:N) {
+  A[1, i + N] <- S[1, i] + .35 * ((P - .5) / N)
+}
+
+Acurve <- matrix(nrow = 1, ncol = 2 * N)
+colnames(Acurve) <-
+  c('A1', 'A2', 'A3', 'A4', 'B1', 'B2', 'B3', 'B4')
+rownames(Acurve) <- c('(S)trength to points')
+for (i in 1:N) {
+  Acurve[1, i] <-
+    (S[1, i] - .35 * ((P - .5) / N)) * (pi / 2) + ((3 * pi) /
+                                                     2)
+}
+for (i in 1:N) {
+  Acurve[1, i + N] <-
+    (S[1, i] + .35 * ((P - .5) / N)) * (pi / 2) + ((3 *
+                                                      pi) / 2)
+}
+
+interactsize <- .0
+noise <- .01
+
+linear <- matrix(nrow = subCnt * 2, ncol = 2 * N)
+colnames(linear) <-
+  c('A1', 'A2', 'A3', 'A4', 'B1', 'B2', 'B3', 'B4')
+
+for (j in seq(1, subCnt * 2, 2)) {
+  for (i in 1:(2 * N)) {
+    linear[j, i] <- A[1, i] + rnorm(1) * noise
+    if (i <= N) {
+      linear[j + 1, i] <- A[1, i] + rnorm(1) * noise
+    } else {
+      linear[j + 1, i] <- A[1, i] + rnorm(1) * noise + interactsize
+    }
+  }
+}
+
+linear
+
+subjects<-matrix(c(rep(1:5,each=2),rep(1,times=10),rep(1:2,times=5)),10,3)
+colnames(subjects) <- c('subjects','between', 'condition')
+
+linearOut <-cbind(subjects,linear)
+write.csv(linearOut, file = 'linear.csv',row.names=FALSE)
+
+
+
+concaveup <- matrix(nrow = subCnt * 2, ncol = 2 * N)
+colnames(concaveup) <-
+  c('A1', 'A2', 'A3', 'A4', 'B1', 'B2', 'B3', 'B4')
+for (j in seq(1, subCnt * 2, 2)) {
+  for (i in 1:(2 * N)) {
+    concaveup[j, i] <- cos(Acurve[1, i]) + rnorm(1) * noise
+    if (i <= N) {
+      concaveup[j+1, i] <- sin(Acurve[1, i]) + 1 + rnorm(1) * noise
+    } else {
+      concaveup[j+1, i] <- sin(Acurve[1, i]) + 1 + rnorm(1) * noise + interactsize
+    }
+  }
+}
+
+concaveup
+
+cUpOut <-cbind(subjects,concaveup)
+write.csv(cUpOut, file = 'concaveup.csv',row.names=FALSE)
+
+
+concavedn <- matrix(nrow = subCnt * 2, ncol = 2 * N)
+colnames(concavedn) <-
+  c('A1', 'A2', 'A3', 'A4', 'B1', 'B2', 'B3', 'B4')
+for (j in seq(1, subCnt * 2, 2)) {
+  for (i in 1:(2 * N)) {
+    concavedn[j, i] <- sin(Acurve[1, i]) + 1 + rnorm(1) * noise
+    if (i <= N) {
+      concavedn[j+1, i] <- cos(Acurve[1, i]) + rnorm(1) * noise
+    } else {
+      concavedn[j+1, i] <- cos(Acurve[1, i]) + rnorm(1) * noise + interactsize
+    }
+  }
+}
+
+concavedn
+
+cdnOut <-cbind(subjects,concavedn)
+write.csv(cdnOut, file = 'concavedn.csv',row.names=FALSE)
+

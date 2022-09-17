@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+    <meta content="utf-8" http-equiv="encoding">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="jsPsych-main/jspsych.js"></script>
+    <script src='jsPsych-main/plugins/jspsych-html-keyboard-response.js'></script>
+    <script src='jsPsych-main/plugins/jspsych-fullscreen.js'></script>
+    <script src="jsPsych-main/plugins/jspsych-categorize-html.js"></script>
+    <script src="jsPsych-main/plugins/jspsych-external-html.js"></script>
+    <script src="jsPsych-main/plugins/jspsych-survey-multi-select.js"></script>
+    <script src="jsPsych-main/plugins/jspsych-instructions.js"></script>
+    <script src="jsPsych-main/plugins/jspsych-survey-text.js"></script>
+    <script src="jsPsych-main/plugins/jspsych-survey-multi-select.js"></script>
+    <script src="jsPsych-main/plugins/jspsych-survey-multi-choice.js"></script>
+    <script src="jsPsych-main/plugins/jspsych-call-function.js"></script>
+
+    <link href="jsPsych-main/css/jspsych.css" rel="stylesheet">
+
+    <link rel="preload" as="font" href="supportFiles/BACS_fonts/BACS_fonts/BACS1.otf" type="font/otf"
+        crossorigin="anonymous">
+    <link rel="preload" as="font" href="supportFiles/BACS_fonts/BACS_fonts/BACS2sans.otf" type="font/otf"
+        crossorigin="anonymous">
+
+    <style type="text/css">
+        @font-face {
+            font-family: BACS1;
+            src: url(supportFiles/BACS_fonts/BACS_fonts/BACS1.otf) format("opentype");
+        }
+
+        @font-face {
+            font-family: BACS2;
+            src: url(supportFiles/BACS_fonts/BACS_fonts/BACS2sans.otf) format("opentype");
+        }
+
+        .bacs1 {
+            font-family: 'BACS1';
+            font-size: 100%;
+            text-align: 'center';
+            color: black;
+            text-anchor: middle;
+        }
+
+        .bacs2 {
+            font-family: 'BACS2';
+            font-size: 100%;
+            text-align: 'center';
+            color: black;
+            text-anchor: middle;
+        }
+    </style>
+</head>
+
+<body>
+</body>
+<script>
+    //SETUP//
+    //Generates ID, sets counterbalance condition, keypresses, and start date
+    document.body.style.backgroundColor = 'Gray';
+    const date = new Date();
+    var stDate = date.getMonth() + '-' + date.getDate();
+    var subID = jsPsych.randomization.randomID(3);
+    var cntBalance = jsPsych.randomization.sampleWithoutReplacement(['red', 'green'], 1);
+    var fileName = cntBalance + '_' + stDate + '_' + subID
+    var keys = ['z', 'm']
+    jsPsych.data.addProperties(
+        {
+            subject: subID,
+            condition: cntBalance,
+        }
+    )
+
+    function saveData(name, data) {
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', 'write_data.php'); // 'write_data.php' is the path to the php file described above.
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.send(JSON.stringify({ filename: name, filedata: data }));
+    }
+
+    function isEven(value) {
+        if (value % 2 == 0)
+            return true;
+        else
+            return false;
+    }
+
+    //CONSENT & DEMOGRAPHICS//
+    var fullSrc = {
+        type: 'fullscreen',
+        fullscreen_mode: true,
+    }
+
+    var consent = {
+        timeline: [
+            {
+                type: 'html-keyboard-response',
+                stimulus: '<div style= "font-size:20px;" <p> <strong> Welcome to the experiment! </strong><br> <p style="color:red; font-size:25px;"> Please do NOT exit full screen until you are done with the experiment. </p>' +
+                    '<p style="color:red;"> The experiment will be canceled and your data will be lost if you try to go back or refresh the page at any time during the experiment.</p>' +
+                    '<p style="color:red;"> Please rely on your memory and do NOT write anything down throughout the experiment. </p>' +
+                    '<br>' +
+                    '<p style="color:black;">Press any key to continue.</p> </span>'
+            }, {
+                type: 'external-html',
+                url: "http://labs.psychology.illinois.edu/~jy57/memory_capture/supportFiles/Consent.html",
+                cont_btn: "start" // id of continue button, trial advances when this is clicked
+            }, {
+                type: 'survey-text',
+                questions: [{ prompt: "How old are you?" },
+                { prompt: "How many years of college have you completed? (0=Freshman, 1=Sophomore, etc.)" }],
+                preamble: "<p> <strong>  DEMOGRAPHIC FORM </strong> </p>",
+            }, {
+                type: 'survey-multi-select',
+                questions: [{ prompt: "Race: What race do you consider yourself to be?", options: ["American Indian or Alaska Native", "Asian", "Black or African-American", "White", "Other"], required: true }],
+                preamble: "<p> <strong>  DEMOGRAPHIC FORM </strong> </p>",
+            }, {
+                type: 'survey-text',
+                questions: [{ prompt: "Gender: What best describes your gender?", options: ["Female", "Male", "Nonbinary/third gender", "Prefer not to say", "Other"], required: true },
+                { prompt: "Ethnicity: Do you consider yourself to be Hispanic or Latino?", options: ["Yes", "No"], required: false },
+                { prompt: "Health: How would you rate your overall health?", options: ["Much worse than average", "Somewhat worse than average", "Average", "Somewhat better than average", "Much better than average"], required: false }],
+                preamble: "<p> <strong>  DEMOGRAPHIC FORM </strong> </p>",
+            },
+            {
+                type: 'call-function',
+                func: function () {
+                    jsPsych.setProgressBar(.05)
+                }
+            }
+        ],
+    }
+
+    //VDAC TASK//
+
+    function drawInstruct(x, y, colors, angle) {
+        var svg = [
+            '<svg viewBox="0 0 100 100" >',
+            '<path d="M 50 52 L 50 48" stroke="black" stroke-width=".5"/> <path d="M 52 50 L 48 50" stroke="black" stroke-width=".5"/>'
+        ]
+
+        for (let i = 0; i < 6; i++) {
+            svg.push(
+                '<circle cx="50" cy="50" r="10" fill="none" transform="translate(' + x[i] + ' ' + y[i] + ')" stroke="' + colors[i] + '" />' +
+                '<path d="M 50 57 L 50 43" stroke="black" transform="translate(' + x[i] + ' ' + y[i] + ') rotate(' + angle[i] + ' 50 50)"/>'
+            );
+        };
+        return svg
+    }
+
+    function drawVDACtrain(tgtPos, tgtCol, tgtDir) {    //generates stimuli for VDAC task, specifies position 1-6, green or red, and horizontal or vertical. training has extra prompt
+        var colors = jsPsych.randomization.shuffle(['cyan', 'blueviolet', 'black', 'magenta', 'gold']);
+        colors.splice(tgtPos, 0, tgtCol);
+        var angle = [];
+        for (let i = 0; i < 5; i++) {
+            if (Math.random() < 0.5) {
+                angle[i] = '45'
+            } else {
+                angle[i] = '-45'
+            }
+        };
+        if (tgtDir == 'h') {
+            angle.splice(tgtPos, 0, '90')
+        } else if (tgtDir == 'v') {
+            angle.splice(tgtPos, 0, '0')
+        };
+
+        var x = [26, 0, -26, -26, 0, 26];
+        var y = [15, 30, 15, -15, -30, -15];
+
+        var svg = [
+            '<svg viewBox="0 0 100 100" >',
+            '<text font-size="10%" text-anchor="middle"  x="50" y="98">Press ' + keys[0] + ' for horizontal or ' + keys[1] + ' for vertical</text>',
+            '<path d="M 50 52 L 50 48" stroke="black" stroke-width=".5"/> <path d="M 52 50 L 48 50" stroke="black" stroke-width=".5"/>'
+        ];
+
+        for (let i = 0; i < 6; i++) {
+            svg.push(
+                '<circle cx="50" cy="50" r="10" fill="none" transform="translate(' + x[i] + ' ' + y[i] + ')" stroke="' + colors[i] + '" />' +
+                '<path d="M 50 57 L 50 43" stroke="black" transform="translate(' + x[i] + ' ' + y[i] + ') rotate(' + angle[i] + ' 50 50)"/>'
+            );
+        };
+        svg.push(
+            '</svg>'
+        );
+
+        return svg;
+    };
+
+    function drawVDACtest(tgtPos, tgtCol, tgtDir) {     //generates stimuli for VDAC task, specifies position 1-6, green or red, and horizontal or vertical. training has extra prompt
+        var colors = jsPsych.randomization.shuffle(['cyan', 'blueviolet', 'black', 'magenta', 'gold'])
+        colors.splice(tgtPos, 0, tgtCol)
+        var angle = []
+        for (let i = 0; i < 5; i++) {
+            if (Math.random() < 0.5) {
+                angle[i] = '45'
+            } else {
+                angle[i] = '-45'
+            }
+        }
+        if (tgtDir == 'h') {
+            angle.splice(tgtPos, 0, '90')
+        } else if (tgtDir == 'v') {
+            angle.splice(tgtPos, 0, '0')
+        }
+
+        var x = [26, 0, -26, -26, 0, 26]
+        var y = [15, 30, 15, -15, -30, -15]
+
+        var svg = [
+            '<svg viewBox="0 0 100 100" >',
+            '<path d="M 50 52 L 50 48" stroke="black" stroke-width=".5"/>',
+            ' <path d="M 52 50 L 48 50" stroke="black" stroke-width=".5"/>'
+        ]
+
+        for (let i = 0; i < 6; i++) {
+            svg.push(
+                '<circle cx="50" cy="50" r="10" fill="none" transform="translate(' + x[i] + ' ' + y[i] + ')" stroke="' + colors[i] + '" />',
+                '<path d="M 50 57 L 50 43" stroke="black" transform="translate(' + x[i] + ' ' + y[i] + ') rotate(' + angle[i] + ' 50 50)"/>'
+            );
+        };
+        svg.push(
+            '</svg>'
+        );
+
+        return svg
+    };
+
+    var VDACinstructions = {                            //Generates instructions using drawInstruct()
+        type: 'instructions',
+        pages: [
+            'In this task, your job is to detect either a horizontal line or a vertical line among five other diagonal lines.  Each trial will begin with a + symbol in the center of the screen. You should focus your eyes on that + symbol. Then six differently colored circles will appear. Each one will have a line inside of them.' +
+            '<p>Your target—the horizontal or vertical line—will always be inside a red or green circle. You should press <b>' + keys[0] + '</b> if the line is horizontal or <b>' + keys[1] + '</b> if the line is vertical. You will see examples on the following pages.' +
+            '<p>Click next or use the arrow keys to proceed.</p>'
+            ,
+            drawInstruct(
+                [26, 0, -26, -26, 0, 26],
+                [15, 30, 15, -15, -30, -15],
+                ['cyan', 'blueviolet', 'black', 'red', 'magenta', 'gold'],
+                ['-45', '45', '45', '90', '45', '-45']
+            ) +
+            '<text font-size="10%" text-anchor="middle"  x="50" y="95">Press ' + keys[0] + ' for horizontal or ' + keys[1] + ' for vertical</text>' +
+            '<text font-size="10%" text-anchor="middle"  x="50" y="97">Click next or use the arrow keys to proceed.</text>' +
+
+            '</svg>'
+            ,
+            drawInstruct(
+                [26, 0, -26, -26, 0, 26],
+                [15, 30, 15, -15, -30, -15],
+                ['cyan', 'blueviolet', 'black', 'red', 'magenta', 'gold'],
+                ['-45', '45', '45', '90', '45', '-45']
+            ) +
+            '<text font-size="10%" text-anchor="middle"  x="24" y="20">This is your target.</text>' +
+            '<text font-size="10%" text-anchor="middle"  x="50" y="97">Click next or use the arrow keys to proceed.</text>' +
+            '</svg>'
+            ,
+            '<svg viewBox="0 0 100 60" >' +
+            '<text font-size="10%" text-anchor="middle"  x="24" y="17 ">Horizontal line.</text>' +
+            '<text font-size="10%" text-anchor="middle"  x="50" y="3 ">Determine the orientation of the line inside the target.</text>' +
+            '<text font-size="10%" text-anchor="middle"  x="24" y="20">Press the ' + keys[0] + ' key.</text>' +
+            '<text font-size="10%" text-anchor="middle"  x="76" y="17">Vertical line.</text>' +
+            '<text font-size="10%" text-anchor="middle"  x="76" y="20">Press the ' + keys[1] + ' key.</text>' +
+            '<path stroke-width=".5" d="M 50 10 L 50 50" stroke="black"/>' +
+            '<circle cx="50" cy="50" r="10" fill="none" transform="translate( 26  -15)" stroke="red" />' +
+            '<circle cx="50" cy="50" r="10" fill="none" transform="translate(-26  -15)" stroke="red" />' +
+            '<path d="M 50 57 L 50 43" stroke="black"   transform="translate( 26  -15) rotate(0 50 50)"/>' +
+            '<path d="M 50 57 L 50 43" stroke="black"   transform="translate(-26  -15) rotate(90 50 50)"/>' +
+            '<text font-size="9%" text-anchor="middle"  x="50" y="57">Click next or use the arrow keys to proceed.</text>'
+            ,
+            '<svg viewBox="0 0 100 60" >' +
+            '<text font-size="10%" text-anchor="middle"  x="24" y="17 ">Horizontal line.</text>' +
+            '<text font-size="10%" text-anchor="middle"  x="50" y="3 ">Targets will be red or green.</text>' +
+            '<text font-size="10%" text-anchor="middle"  x="24" y="20">Press the ' + keys[0] + ' key.</text>' +
+            '<text font-size="10%" text-anchor="middle"  x="76" y="17">Vertical line.</text>' +
+            '<text font-size="10%" text-anchor="middle"  x="76" y="20">Press the ' + keys[1] + ' key.</text>' +
+            '<path stroke-width=".5" d="M 50 10 L 50 50" stroke="black"/>' +
+            '<circle cx="50" cy="50" r="10" fill="none" transform="translate( 26  -15)" stroke="green" />' +
+            '<circle cx="50" cy="50" r="10" fill="none" transform="translate(-26  -15)" stroke="green" />' +
+            '<path d="M 50 57 L 50 43" stroke="black"   transform="translate( 26  -15) rotate(0 50 50)"/>' +
+            '<path d="M 50 57 L 50 43" stroke="black"   transform="translate(-26  -15) rotate(90 50 50)"/>' +
+            '<text font-size="9%" text-anchor="middle"  x="50" y="57">Click next or use the arrow keys to proceed.</text>'
+            ,
+            drawInstruct(
+                [26, 0, -26, -26, 0, 26],
+                [15, 30, 15, -15, -30, -15],
+                ['green', 'blueviolet', 'gold', 'black', 'cyan', 'magenta'],
+                ['90', '-45', '45', '-45', '-45', '45']
+            ) +
+            '<text font-size="9%" text-anchor="middle"  x="50" y="97">Click next or use the arrow keys to proceed.</text>' +
+            '<text font-size="9%" text-anchor="middle"  x="50" y="5">The target will appear in any one of six locations.</text>' +
+            '</svg>'
+            ,
+            drawInstruct(
+                [26, 0, -26, -26, 0, 26],
+                [15, 30, 15, -15, -30, -15],
+                ['black', 'red', 'gold', 'cyan', 'magenta', 'blueviolet',],
+                ['45', '0', '-45', '45', '-45', '45']
+            ) +
+            '<text font-size="9%" text-anchor="middle"  x="50" y="97">Click next or use the arrow keys to proceed.</text>' +
+            '<text font-size="9%" text-anchor="middle"  x="50" y="5">The target will appear in any one of six locations.</text>' +
+            '</svg>'
+            ,
+            drawInstruct(
+                [26, 0, -26, -26, 0, 26],
+                [15, 30, 15, -15, -30, -15],
+                ['cyan', 'black', 'gold', 'blueviolet', 'magenta', 'red'],
+                ['-45', '45', '-45', '45', '45', '90']
+            ) +
+            '<text font-size="9%" text-anchor="middle"  x="50" y="97">Click next or use the arrow keys to proceed.</text>' +
+            '<text font-size="9%" text-anchor="middle"  x="50" y="5">The target will appear in any one of six locations.</text>' +
+            '</svg>'
+            ,
+            '<p>You will earn points when you are correct and respond quickly enough. If you are wrong or respond too slowly, you will see “Miss” in your screen and you will not earn any points. You will earn either 10 points or 2 points when you are correct. You should try to earn as many points as you can.</p>' +
+            '<p>If you understand these instructions, click next or use the arrow keys to proceed and you will be given 10 practice trials. You will be given the option to review these instructions and repeat the training exercise again before starting the experiment.</p>'
+            ,
+        ],
+        show_clickable_nav: true,
+        show_page_number: true,
+        on_finish: function () {
+            document.body.style.cursor = 'none'
+        },
+    }
+
+    var gapArr = [
+        {
+            type: "html-keyboard-response",
+            stimulus: "<p>Place your fingers on the <b>" + keys[0] +
+                "</b> and <b>" + keys[1] +
+                "</b> keys. The experiment will begin shortly.</p> <p></p>",
+            trial_duration: 3000,
+        }
+    ];
+    for (let i = 5; i > 0; i--) {
+        gapArr.push(
+            {
+                type: "html-keyboard-response",
+                stimulus: "<p>Place your fingers on the <b>" + keys[0] +
+                    "</b> and <b>" + keys[1] +
+                    "</b> keys. The experiment will begin shortly.</p><p>" + i + "</p>",
+                trial_duration: 1000,
+            }
+        )
+    }
+    var instructionsGap = {
+        timeline: gapArr
+    }
+
+    var fixation = {    //Generates fixation cross for 400 - 1000 ms                               
+        type: 'html-keyboard-response',
+        stimulus: '<svg viewBox="0 0 100 100" > <path d="M 50 52 L 50 48" stroke="black" stroke-width=".5"/> <path d="M 52 50 L 48 50" stroke="black" stroke-width=".5"/>',
+        choices: jsPsych.NO_KEYS,
+        trial_duration: Math.floor(Math.random() * 600) + 400,
+    }
+
+    var VDACtrial = {   //Presents VDAC trials and checks for response as data.correct   
+        type: 'html-keyboard-response',
+        choices: [keys[0], keys[1]],
+        trial_duration: 1000,
+        stimulus: jsPsych.timelineVariable('stimulus'),
+        data: jsPsych.timelineVariable('data'),
+        on_finish: function (data) {
+            var correct = null;
+            if (data.tgtDir == 'h' && data.response == keys[0] || data.tgtDir == 'v' && data.response == keys[1]) {
+                correct = true
+            } else if (data.tgtDir == 'h' && data.response == keys[1] || data.tgtDir == 'v' && data.response == keys[0]) {
+                correct = false;
+            }
+            data.correct = correct;
+        },
+        post_trial_gap: 1000,
+    }
+
+    var fdbkCor = '<p style="font-size:300%;">Correct!</p>'
+    var fdbkWrg = '<p style="font-size:300%;">Miss.</p> <p style="font-size:300%;">Wrong response.</p>'
+    var fdbkTime = '<p style="font-size:300%;">Miss.</p> <p style="font-size:300%;">Too slow.</p>'
+    var fdbkMiss = '<p style="font-size:300%;">Miss.</p>'
+    var rwdTotal = Math.round(0)
+
+    var fdbkNoPts = {   //Provides feedback based on data.correct
+        type: 'html-keyboard-response',
+        stimulus: function () {
+            if (jsPsych.data.getLastTrialData().values()[0].correct == true) {
+                return fdbkCor
+            } else if (jsPsych.data.getLastTrialData().values()[0].correct == false) {
+                return fdbkWrg
+            } else if (jsPsych.data.getLastTrialData().values()[0].correct == null) {
+                return fdbkTime
+            }
+        },
+        choices: jsPsych.NO_KEYS,
+        trial_duration: 1500,
+        post_trial_gap: 1000,
+    }
+
+    var fdbkPts = {     //Provides feedback based on data.correct and data.rwdType
+        type: 'html-keyboard-response',
+        stimulus: function (data) {
+            var rewardTrial = 2
+            if (jsPsych.data.getLastTrialData().values()[0].correct == true && jsPsych.data.getLastTrialData().values()[0].rwdType == 'low') {
+                attCount.push(0)
+                attCount.shift()
+                if (Math.random() < .2) {
+                    rewardTrial = 10
+                }
+                rwdTotal = rwdTotal + rewardTrial
+                return '<p style="font-size:300%;"> + ' + rewardTrial + ' points.</p><p style="font-size:300%">Total: ' + rwdTotal + ' points.</p>'
+            } else if (jsPsych.data.getLastTrialData().values()[0].correct == true && jsPsych.data.getLastTrialData().values()[0].rwdType == 'high') {
+                attCount.push(0)
+                attCount.shift()
+                if (Math.random() < .8) {
+                    rewardTrial = 10
+                }
+                rwdTotal = rwdTotal + rewardTrial
+                return '<p style="font-size:300%;"> + ' + rewardTrial + ' points.</p><p style="font-size:300%">Total: ' + rwdTotal + ' points.</p>'
+            } else if (jsPsych.data.getLastTrialData().values()[0].correct == false) {
+                return fdbkMiss + '<p style="font-size:300%">Total: ' + rwdTotal + ' points.</p>'
+            } else if (jsPsych.data.getLastTrialData().values()[0].correct == null) {
+                attCount.push(1)
+                attCount.shift()
+                return fdbkMiss + '<p style="font-size:300%">Total: ' + rwdTotal + ' points.</p>'
+            }
+        },
+        on_finish: function (data) {
+            data.reward = rwdTotal
+            breakCounter++
+        },
+
+        choices: jsPsych.NO_KEYS,
+        trial_duration: 1500,
+        post_trial_gap: 1000,
+    }
+
+    var trainArr = [];  //Generates timeline variable for VDACtraining
+    colArr = ['red', 'green']
+    dirArray = ['h', 'v']
+    for (let repeat = 0; repeat < 1; repeat++) {
+        for (let o = 0; o < 2; o++) {
+            for (let c = 0; c < 2; c++) {
+                for (let i = 0; i < 6; i++) {
+                    trainArr.push(
+                        {
+                            stimulus: drawVDACtrain(i, colArr[c], dirArray[o]),
+                            data: { trialType: "VDACtrain", tgtCol: colArr[c], tgtPos: i, tgtDir: dirArray[o] }
+                        }
+                    )
+                }
+            }
+        }
+    }
+
+    var exerciseRepeat = {  //Prompt to repeat trials, generates r or g for data.response
+        type: 'html-keyboard-response',
+        stimulus: '<p>You have now finished the training exercise. If you would like to repeat the instructions and training exercise, press R. If you are ready to continue to the task, press C. </p>',
+        choices: ['r', 'c'],
+    }
+
+    var VDACtraining = {    //VDAC with no points feedback, repeats if exerciseRepeat is 'r'
+        timeline: [VDACinstructions, instructionsGap,
+            {
+                timeline: [fixation, VDACtrial, fdbkNoPts],
+                timeline_variables:
+                    trainArr
+                ,
+                randomize_order: true,
+            },
+            exerciseRepeat,
+        ],
+        loop_function: function (data) {
+            if (jsPsych.data.getLastTrialData().values()[0].response == 'r') {
+                return true;
+            } else {
+                return false;
+            }
+        },
+    }
+
+    var attCount = [0, 0, 0, 0, 0]      //Adds 1 to array if missed trial, opens attCheck if all 5 trials are 1s
+    var attCheck = {
+        timeline: [
+            {
+                type: "html-keyboard-response",
+                stimulus: "<p>You have failed to respond to 5 consecutive trials. Please press the G key if you are still there and working at the task.</p>",
+                choices: ['g'],
+                minimum_valid_rt: 500,
+                post_trial_gap: 1000,
+                on_finish: function () {
+                    attCount = [0, 0, 0, 0, 0]
+                }
+            }
+        ],
+        conditional_function: function () {
+            if (attCount.reduce((a, b) => a + b, 0) == 5) {
+                return true
+            } else {
+                return false
+            }
+        },
+    }
+    var breakCounter = 0
+    var breakCounterEnd = 0
+
+    function progBarUpdate(proportion) {
+        var curr_progress_bar_value = jsPsych.getProgressBarCompleted();
+        jsPsych.setProgressBar(curr_progress_bar_value + proportion);
+    }
+
+    function restPeriod(countDwn) {
+        var trials = jsPsych.data.get().filter({ trialType: 'VDACtest' });
+        var correct_trials = trials.filter({ correct: true });
+        var accuracy = Math.round(correct_trials.count() / trials.count() * 100);
+        var rt = Math.round(correct_trials.select('rt').mean());
+        return '<p>You have finished block ' + breakCounterEnd + ' of 4. You may now take up to a 45 second break. Press the G key when you are ready to continue, or it will begin automatically when the countdown ends.' +
+            'Remember, press <b>' + keys[0] + '</b> if the line is horizontal or <b>' + keys[1] + '</b> if the line is vertical.</p>' +
+            '<p>You responded correctly on ' + accuracy + '% of the trials which has earned you ' + rwdTotal + ' points.</p>' +
+            '<p>Time Left: ' + countDwn + ' </p>'
+    }
+
+    var restArr = []
+
+    for (let i = 45; i > 0; i--) {
+        restArr.push(
+            {
+                stimulus: restPeriod(i)
+            }
+        )
+    }
+
+breakCounter = 1 //CHANGE FOR TROUBLESHOOTING 
+    var VDACbreakPart = {
+        type: 'html-keyboard-response',
+        choices: ['g'],
+        stimulus: jsPsych.timelineVariable('stimulus'),
+        trial_duration: 1000,
+        conditional_function: function () {
+            if (breakCounter == 1 && breakCounterEnd < 3) {
+                breakCounterEnd++
+                return true
+            } else {
+                return false
+            }
+        },
+        on_finish: function (data) {
+            if (jsPsych.pluginAPI.compareKeys(data.response, 'g')) {
+                jsPsych.endCurrentTimeline();
+            }
+        },
+        timeline: restArr
+    }
+
+    var VDACbreakPart2 = {
+        type: 'call-function',
+        func: function () {
+            breakCounter = 0
+            attCount = [0, 0, 0, 0, 0]
+        }
+    }
+
+    var VDACbreak = {
+        timeline: [
+            VDACbreakPart, VDACbreakPart2, instructionsGap, VDACbreakPart
+        ]
+    }
+
+    var testArr = [];       //Generates timeline variable for VDACtraining
+    for (let repeat = 0; repeat < 1; repeat++) {
+        for (let o = 0; o < 2; o++) {
+            for (let c = 0; c < 2; c++) {
+                for (let i = 0; i < 6; i++) {
+                    testArr.push(
+                        {
+                            stimulus: drawVDACtrain(i, colArr[c], dirArray[o]),
+                            data: { trialType: "VDACtest", rwdType: 'low', tgtCol: colArr[c], tgtPos: i, tgtDir: dirArray[o] }
+                        }
+                    )
+                }
+            }
+        }
+    }
+
+    var VDACtaskGreen = {
+        timeline: [fixation, VDACtrial, fdbkPts, attCheck],
+        timeline_variables: testArr,
+        trialType: "VDACtest",
+        conditional_function: function () {
+            if (cntBalance[0] == 'green') {
+                return true
+            } else {
+                return false
+            }
+        }
+    }
+
+    var VDACtaskRed = {
+        timeline: [fixation, VDACtrial, fdbkPts, attCheck],
+        timeline_variables: testArr,
+        conditional_function: function () {
+            if (cntBalance[0] == 'red') {
+                return true
+            } else {
+                return false
+            }
+        },
+    }
+
+    var VDACtask = {
+        timeline: [VDACtaskGreen, VDACtaskRed],
+    }
+
+
+    //MEMORY TEST//
+    function resetCounters() {
+        console.log('counterReset')
+        breakCounter = 0
+        breakCounterEnd = 0
+        attCheck = [0, 0, 0, 0, 0]
+    }
+
+    var resetCounter = {
+        type: 'call-function',
+        func: function () {
+            resetCounters();
+            jsPsych.setProgressBar(.5);
+        }
+    }
+
+    var speedRSVP = 500 //speed up or slow down RSVP here 
+    var letterStim = []
+    var letterTgt = []
+
+
+    function drawMemStim(dir, color, colPos) {
+        var svg = [
+            '<svg viewBox="0 0 100 100" >',
+            '<path d="M 50 52 L 50 48" stroke="black" stroke-width=".5"/>',
+            '<path d="M 52 50 L 48 50" stroke="black" stroke-width=".5"/>'
+        ]
+        var letters = ['a', 's', 'd']
+        var colArr = ['black', 'black']
+        colArr.splice(colPos, 0, color)
+
+        if (dir == 0) {
+            x = [26, -26, 0];
+            y = [15, 15, -30];
+        } else if (dir == 1) {
+            x = [0, -26, 26];
+            y = [30, -15, -15];
+        }
+
+        for (let i = 0; i < 3; i++) {
+            svg.push('<text dominant-baseline="middle" x="50" y="50" fill=' + colArr[i] + ' transform="translate(' + x[i] + ' ' + y[i] + ')" class="bacs2">' + letters[i] + '</text>')
+        }
+        svg.push(
+            '</svg>'
+        )
+
+        for (let i = 0; i < 3; i++) {
+            letterTgt[i] = '<svg viewBox="0 0 100 100">' +
+                '<text dominant-baseline="middle" x="50" y="50" class="bacs2" ">' + letters[i] + '</text>' +
+                '</svg>'
+        }
+        return svg
+    }
+
+
+
+    function drawMemMask(dir) {
+        var svg = [
+            '<svg viewBox="0 0 100 100" >',
+            '<path d="M 50 52 L 50 48" stroke="black" stroke-width=".5"/>',
+            '<path d="M 52 50 L 48 50" stroke="black" stroke-width=".5"/>'
+        ]
+
+        if (isEven(dir)) {
+            x = [26, -26, 0];
+            y = [15, 15, -30];
+        } else {
+            x = [0, -26, 26];
+            y = [30, -15, -15];
+        }
+
+        for (let i = 0; i < 3; i++) {
+            svg.push('<text dominant-baseline="middle" text-anchor= "middle" x="50" y="50" fill="black" transform="translate(' + x[i] + ' ' + y[i] + ')">X</text>' +
+                '<text dominant-baseline="middle" text-anchor= "middle" x="50" y="50" fill="black" transform="translate(' + (x[i] + 5) + ' ' + y[i] + ')">X</text>' +
+                '<text dominant-baseline="middle" text-anchor= "middle" x="50" y="50" fill="black" transform="translate(' + (x[i] - 5) + ' ' + y[i] + ')">X</text>'
+            )
+        }
+        svg.push(
+            '</svg>'
+        )
+        return svg
+    }
+
+    var RSVPinstructions = {
+        type: 'instructions',
+        pages: [
+            'Now you will perform a new task.  Again, start by focusing your eyes on the + symbol. Then you will see a series of three non-English characters presented rapidly in the center of your screen. Try to remember these three characters. After a brief delay, a test character will be presented on the screen with a prompt to press ' + keys[0] + ' or ' + keys[1] + '. <p>Your job is to identify whether this character was the same as one of the three characters that was just presented in the set or if it is a different character that was not presented in the set. Press <b>' + keys[0] + '</b> if that character is the same as one of the previously presented characters or press <b>' + keys[1] + '</b> if that character is different from the previously presented characters. You will see an example on the next screen.</p>' +
+            '<p>Click next or use the arrow keys to proceed.</p>'
+            ,
+            'Here are three example characters that could appear on your screen. <p style="text-align:center; font-family: BACS1; font-size:700%;">A C E</p>' +
+            '<p>Click next or use the arrow keys to proceed.</p>'
+            ,
+            '<p>Here is an example test prompt.</p><p style="text-align:center; font-family: BACS1; font-size:700%;">C</p><p><p>Press ' + keys[0] + ' for same or ' + keys[1] + ' for different.</p>' +
+            '<p>Click next or use the arrow keys to proceed.</p>'
+            ,
+            '<p>If the test prompt is a previous character, like <span style="text-align:center; font-family: BACS1; font-size:300%;">C</span>, you should press <b>' + keys[0] + '</b> to indicate it is from the set.</p>' +
+            '<p>If the test prompt is a new character, like <span style="text-align:center; font-family: BACS1; font-size:300%;">D</span>, you should press <b>' + keys[1] + '</b> to indicate that it was not in the previous set.</p>' +
+            '<p>I will tell you if your response was correct or incorrect after each trial, but you will not earn points in this task. You should still try to respond as quickly and as accurately as you can. Some characters will appear in a different color. The color of the character has no relevance to your task.</p>' +
+            'If you understand these instructions, click next or use the arrow keys to proceed and you will be given 10 practice trials. You will be given the option to review these instructions and repeat the training exercise again before starting the experiment.'
+        ],
+        show_clickable_nav: true,
+        show_page_number: true,
+        on_start: function () {
+            document.body.style.cursor = 'auto'
+        },
+    }
+
+    var RSVPtest = {
+        timeline: [
+            {
+                type: 'html-keyboard-response',
+                stimulus: jsPsych.timelineVariable('stimulus'),
+                choices: jsPsych.ALL_KEYS,
+            }, {
+                type: 'html-keyboard-response',
+                stimulus: jsPsych.timelineVariable('mask'),
+                choices: jsPsych.NO_KEYS,
+                trial_duration: 500,
+            },
+            {    //Generates fixation cross for 400 - 1000 ms                               
+                type: 'html-keyboard-response',
+                stimulus: '<svg viewBox="0 0 100 100" > <path d="M 50 52 L 50 48" stroke="black" stroke-width=".5"/> <path d="M 52 50 L 48 50" stroke="black" stroke-width=".5"/>',
+                choices: jsPsych.NO_KEYS,
+                trial_duration: 2000,
+            },
+            {
+                type: 'html-keyboard-response',
+                stimulus: jsPsych.timelineVariable('tgt'),
+                choices: [keys[0], keys[1]],
+                trial_duration: 2500,
+                data: jsPsych.timelineVariable('data'),
+                post_trial_gap: 1000,
+                on_finish: function (data) {
+                    var correct = null;
+                    if (data.tgtPosition !== 'new' && data.response == keys[0] || data.tgtPosition == 'new' && data.response == keys[1]) {
+                        correct = true
+                    } else if (data.tgtPosition !== 'new' && data.response == keys[1] || data.tgtPosition == 'new' && data.response == keys[0]) {
+                        correct = false
+                    }
+                    data.correct = correct
+                }
+            }]
+    }
+
+    trainArr = []
+    for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 2; j++) {
+            trainArr.push(
+                {
+                    stimulus: drawMemStim(j, 'red', i),
+                    mask: drawMemMask(j),
+                    tgt: letterTgt[i],
+                    data: { tgtPosition: '1st' }
+                }
+            )
+        }
+    }
+    var RSVPexercise = {
+        timeline: [fixation, RSVPtest, fdbkNoPts],
+        timeline_variables: trainArr,
+        randomize_order: true,
+    }
+
+    var RSVPtraining = {
+        timeline: [RSVPexercise,
+            {
+                type: 'call-function',
+                func: function () {
+                    jsPsych.setProgressBar(.55)
+                }
+            },
+            exerciseRepeat],
+        loop_function: function (data) {
+            if (jsPsych.data.getLastTrialData().values()[0].response == 'r') {
+                return true;
+            } else {
+                return false;
+            }
+        },
+    }
+
+    var RSVPfeedback = {
+        type: 'html-keyboard-response',
+        stimulus: function () {
+            if (jsPsych.data.getLastTrialData().values()[0].correct == true) {
+                attCount.push(0)
+                attCount.shift()
+                return fdbkCor
+            } else if (jsPsych.data.getLastTrialData().values()[0].correct == false) {
+                attCount.push(0)
+                attCount.shift()
+                return fdbkMiss
+            } else if (jsPsych.data.getLastTrialData().values()[0].correct == null) {
+                attCount.push(1)
+                attCount.shift()
+                return fdbkTime
+            }
+        },
+        on_finish: function (data) {
+            breakCounter++
+            console.log(breakCounter)
+        },
+        choices: jsPsych.NO_KEYS,
+        trial_duration: 1500,
+        post_trial_gap: 1000,
+    }
+
+    var restPeriodRSVP = {
+        timeline: [
+            {
+                type: 'call-function',
+                func: function () {
+                    progBarUpdate(.1)
+                }
+            }, {
+                type: "html-keyboard-response",
+                stimulus: function () {
+                    var trials = jsPsych.data.get().filter({ trialType: 'RSVPtest' });
+                    var correct_trials = trials.filter({ correct: true });
+                    var accuracy = Math.round(correct_trials.count() / trials.count() * 100);
+                    var rt = Math.round(correct_trials.select('rt').mean());
+                    return '<p>You have finished block ' + breakCounterEnd + ' of 4. You may now take up to a 30 second break. Press any key when you are ready to continue, or it will begin automatically after 30 seconds. ' +
+                        'Remember, press <b>' + keys[0] + '</b> if the test character is the same as a previous character in the set or press <b>' + keys[1] + '</b> if the character is different from the set.</p>' +
+                        '<p>You have responded correctly on ' + accuracy + '% of the trials.</p>'
+                },
+                choices: jsPsych.ALL_KEYS,
+                minimum_valid_rt: 500,
+                trial_duration: 30000,
+            }, instructionsGap
+        ],
+        conditional_function: function () {
+            if (breakCounter == 50 && breakCounterEnd < 3) {
+                breakCounterEnd++
+                return true
+            } else {
+                return false
+            }
+        },
+        on_finish: function () {
+            breakCounter = 0
+            attCount = [0, 0, 0, 0, 0]
+        }
+    }
+
+    var timelineArr = [];
+    for (let i = 0; i < 3; i++) {
+        timelineArr.push(
+            { stimulus: drawMemStim(i, 'null', i), tgt: letterStim[i], data: { trialType: "RSVPtraining", tgtPosition: '1st' } },
+        )
+    }
+    var RSVPtaskGreen = {
+        timeline: [fixation, RSVPtest, RSVPfeedback, attCheck, restPeriodRSVP],
+        timeline_variables: timelineArr,
+        randomize_order: true,
+        conditional_function: function () {
+            if (cntBalance[0] == 'green') {
+                return true
+            } else {
+                return false
+            }
+        }
+    }
+
+    var RSVPtaskRed = {
+        timeline: [fixation, RSVPtest, RSVPfeedback, attCheck, restPeriodRSVP],
+        timeline_variables: timelineArr,
+        randomize_order: true,
+        conditional_function: function () {
+            if (cntBalance[0] == 'red') {
+                return true
+            } else {
+                return false
+            }
+        }
+    }
+
+    var RSVPtask = {
+        timeline: [RSVPtaskGreen, RSVPtaskRed]
+    }
+
+    function saveData(name, data) {
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', 'write_data.php'); // 'write_data.php' is the path to the php file described above.
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.send(JSON.stringify({ filename: name, filedata: data }));
+    }
+
+    //Debfrief//
+    var debrief = {
+        timeline: [
+            {
+                type: 'call-function',
+                func: function () {
+                    jsPsych.setProgressBar(.95)
+                }
+            }, {
+                type: 'survey-multi-choice',
+                questions: [{
+                    prompt: "You have now finished both tasks of this experiment. During the first task, you identified the orientation of a horizontal or vertical line within a red or green target circle. Did you notice that the points you could have earned was influenced by the color of the target? </p>",
+                    options: ["Yes", "No"], required: false
+                }],
+                on_start: function () { document.body.style.cursor = 'auto' },
+            }, {
+                type: 'survey-multi-select',
+                questions: [{
+                    prompt: "During the second task, you were asked to remember sets of three unfamiliar characters. Below is a list of possible rehearsal strategies that could have been used to remember these characters. Please select if you used any of these strategies."
+                    ,
+                    options: [
+                        'Rehearsal - I silently repeated the characters.',
+                        'Grouping - I remembered the characters in groups (e.g., 2 or more characters together).',
+                        'Association - I thought about other things that could relate to characters.',
+                        'Look - I pictured the way the characters looked on the screen.',
+                        'Sound - I thought about the way the characters sounded.',
+                        'Concentrate - I simply concentrated on the characters.',
+                        'Familiarity - I answered based on what characters seemed recent or familiar.',
+                        'Checklist - I expected certain characters to appear and mentally checked them off as they arrived.',
+                        'None - I used no particular strategy.',
+                        'Other - I used a different strategy that is not listed here.',
+                    ], required: false
+                }],
+                on_finish: function () {
+                    saveData(fileName, jsPsych.data.get().csv())
+                }
+            }, {
+                type: 'call-function',
+                func: function () {
+                    jsPsych.setProgressBar(1)
+                }
+            },
+            {
+
+                type: 'external-html',
+                url: "http://labs.psychology.illinois.edu/~jy57/memory_capture/supportFiles/Debrief.html",
+                cont_btn: "end",
+            }, {
+                type: 'fullscreen',
+                fullscreen_mode: false,
+            },
+        ]
+    }
+
+    var screenSize
+    function determineScreen() {
+        if (window.screen.width <= window.screen.height) {
+            screenSize = window.screen.width
+        } else {
+            screenSize = window.screen.height
+        }
+    }
+    determineScreen()
+
+    var ppn = jsPsych.data.urlVariables()['id']
+    function gotoSona() {
+        survey_link = "https://uiuc.sona-systems.com/services/SonaAPI.svc/WebstudyCredit?experiment_id=1680&credit_token=2684ae2ad7934a89a4bbac33841a6963&survey_code=" + ppn
+        window.location = survey_link;
+    }
+
+    jsPsych.init({
+        //consent,VDACtraining,instructionsGap,VDACtask,resetCounter,RSVPtraining,instructionsGap,RSVPtask,debrief
+        timeline: [fullSrc, VDACbreak],
+        experiment_width: screenSize * .91,
+        override_safe_mode: true,
+        show_progress_bar: false,
+        auto_update_progress_bar: false,
+        exclusions: {
+            min_width: 500,
+            min_height: 500
+        },
+        on_finish: function () {
+            //goToSona()
+        }
+    })
+</script>
+
+</html>

@@ -1,0 +1,137 @@
+#matCoderCode
+#Matlab Code used for running the simulations reported in#Matlab Code used for running the simulations reported in
+#Benjamin, Griffin, and Douglas, \A nonparametric technique for analysis of state-trace functions\#Benjamin, Griffin, and Douglas, \A nonparametric technique for analysis of state-trace functions\
+#prepared by Michael Griffin#prepared by Michael Griffin
+#This program generates the simulated data that will eventually be tested#This program generates the simulated data that will eventually be tested
+#by the isoperm program. It is called by runsims.m, but can also be run on#by the isoperm program. It is called by runsims.m, but can also be run on
+#its own. It creates and saves the 'data' variable to 'simulated.mat'.#its own. It creates and saves the 'data' variable to 'simulated.mat'.
+#
+##Variables that were updated as we ran our simulations:#Variables that were updated as we ran our simulations:
+##concaveup: determines shape of the underlying function#concaveup: determines shape of the underlying function
+##spreadsize: Determines how separated the two conditions are, with higher spreadsize leading to a smaller overlap region.#spreadsize: Determines how separated the two conditions are, with higher spreadsize leading to a smaller overlap region.
+##nhalf: number of points per condition.#nhalf: number of points per condition.
+##noise and interactsize are also used, but normally are received from runsims.m.#noise and interactsize are also used, but normally are received from runsims.m.
+
+concaveup = 0
+#0 = linear, 1 = concave up, -1 concave downconcaveup <- 0#0 = linear, 1 = concave up, -1 concave down
+nsubs = 100
+nsubs <- 100
+spreadsize = .25
+#.25 or .05spreadsize <- .25#.25 or .05
+nhalf = 4
+#50, 10, or 4nhalf <- 4#50, 10, or 4
+npoints <- nhalf * 2
+
+Strbase = .15
+#Added to all Str values.Strbase <- .15#Added to all Str values.
+duradj = .7 / nhalf
+duradj <- .7 / nhalf
+
+spread = (0:nhalf) * duradj + duradj * .5
+spread <- (0:nhalf) * duradj + duradj * .5
+[ ~ , index] = min(abs(spread - spreadsize))
+#Find smallest deviation from desired size where points still fall in between each other.[!,index] <- min(abs(spread - spreadsize))#Find smallest deviation from desired size where points still fall in between each other.
+spread = spread(index)
+spread <- spread(index)
+noise = 0
+#.1, .2, .4    noise <- 0#.1, .2, .4
+interactsize = 0
+# 0, .1, .15, .2    interactsize <- 0# 0, .1, .15, .2
+
+
+function v = Shuffle(v) function v <- Shuffle(v)
+v = v(randperm(length(v)))
+v <- v(randperm(length(v)))
+end }
+interactsigns = Shuffle([-ones(nsubs / 2, 1)
+                         ones(nsubs / 2, 1)])
+interactsigns <- Shuffle([-ones(nsubs / 2, 1)
+                          ones(nsubs / 2, 1)])
+
+data = zeros(nsubs, npoints * 2)
+data <- zeros(nsubs, npoints * 2)
+
+for k = 1:nsubsfor (k in 1:nsubs) {
+  averages = zeros(npoints, 2)
+  averages <- zeros(npoints, 2)
+  for yaxis = 0:1    for (yaxis in 0:1) {
+    for cond = 1:2        for (cond in 1:2) {
+      if cond == 1            if (cond == 1) {
+        cspread = spread / 2
+        cspread <- spread / 2
+        adj = 0
+        adj <- 0
+        else
+      } else {
+        cspread = -spread / 2
+        cspread <- -spread / 2
+        adj = nhalf
+        adj <- nhalf
+        end
+      }
+      
+      if cond == 1 &&
+        yaxis            if (cond == 1 && yaxis) {
+          cinteract = interactsize * interactsigns(k)
+          cinteract <- interactsize * interactsigns(k)
+          else
+        } else {
+          cinteract = 0
+          cinteract <- 0
+          end
+        }
+      
+      for n = 1:nhalf            for (n in 1:nhalf) {
+        cdur = n * duradj
+        cdur <- n * duradj
+        Str = Strbase + cdur + cspread
+        Str <- Strbase + cdur + cspread
+        StrRad = Str * (pi / 2) + (3 * pi) / 2
+        #Get concave up section of circle.                StrRad <- Str*(pi/2) + (3*pi)/2#Get concave up section of circle.
+        switch concaveup                switch concaveup
+        case 0                    case 0
+        observed = Str
+        observed <- Str
+        case 1                    case 1
+        if yaxis == 0                        if (yaxis == 0) {
+          observed = cos(StrRad)
+          observed <- cos(StrRad)
+          else
+        } else {
+          observed = sin(StrRad) + 1
+          #+1 so range is 0 to 1 rather than -1 to 0.                            observed <- sin(StrRad)+1#+1 so range is 0 to 1 rather than -1 to 0.
+          end
+        }
+        case - 1   #Flip x and y to get concave down.                    case -1#Flip x and y to get concave down.
+        if yaxis == 0                        if (yaxis == 0) {
+          observed = sin(StrRad) + 1
+          observed <- sin(StrRad) + 1
+          else
+        } else {
+          observed = cos(StrRad)
+          observed <- cos(StrRad)
+          end
+        }
+        end
+      }
+      
+      observed = observed + cinteract
+      observed <- observed + cinteract
+      observed = observed + randn * noise
+      observed <- observed + randn * noise
+      averages(n + adj, 1 + yaxis) = observed
+      averages(n + adj, 1 + yaxis) <- observed
+      end
+    }
+    end
+  }
+  end
+}
+data(k, 1:npoints) = averages(:, 1)
+data(k, 1:npoints) <- averages(:, 1)
+data(k, npoints + 1:end) = averages(:, 2)
+data(k, npoints + 1:length(averages)) <- averages(:, 2)
+end}
+
+save('simulated.mat', 'data')
+save('simulated.mat', 'data')

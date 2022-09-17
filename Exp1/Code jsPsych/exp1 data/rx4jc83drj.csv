@@ -1,0 +1,7 @@
+"success","trial_type","trial_index","time_elapsed","internal_node_id","subject","condition","rt","url","responses","question_order"
+"true","fullscreen","0","2329","0.0-0.0-0.0","rx4jc83drj","red","","","",""
+"","external-html","1","4222","0.0-0.0-1.0","rx4jc83drj","red","1888.90999997966","http://labs.psychology.illinois.edu/~jy57/memory_capture/supportFiles/Consent.html","",""
+"","survey-multi-select","2","5384","0.0-1.0-0.0","rx4jc83drj","red","1160.1150000351481","","{""Q0"":[]}","[0]"
+"","survey-multi-select","3","6010","0.0-1.0-1.0","rx4jc83drj","red","618.3749999618158","","{""Q0"":[]}","[0]"
+"","external-html","4","7226","0.0-1.0-2.0","rx4jc83drj","red","1208.6400000262074","http://labs.psychology.illinois.edu/~jy57/memory_capture/supportFiles/Debrief.html","",""
+"true","fullscreen","5","8228","0.0-1.0-3.0","rx4jc83drj","red","","","",""

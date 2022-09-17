@@ -1,0 +1,6 @@
+subID,trialType,trialNum,cntBalance,rwdType,correct,rt,tgtCol,tgtPos,tgtDir,colorPosition (for RSVP),Match or no match?
+1hp,VDACtrain,0,red,undefined,TRUE,301.6,red,0,v,,
+1hp,VDACtrain,0,red,undefined,FALSE,162.2,green,1,h,,
+1hp,VDACtest,0,red,low,FALSE,452.8,red,0,v,,
+1hp,VDACtest,1,red,high,TRUE,224.7,green,1,h,,
+1hp,VDACtest,2,red,low,TRUE,237.2,red,2,h,,

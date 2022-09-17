@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <script src="jsPsych-main/jspsych.js"></script>
+  <script src="jsPsych-main/plugins/jspsych-html-keyboard-response.js"></script>
+  <script src="jsPsych-main/plugins/jspsych-preload.js"></script>
+  <script src="jsPsych-main/plugins/jspsych-call-function.js"></script>
+  <script src="jsPsych-main/plugins/jspsych-external-html.js"></script>
+
+
+  <link rel="stylesheet" href="jsPsych-main/css/jspsych.css">
+</head>
+
+<body></body>
+<script>
+
+  var dataShort = {
+    test: []
+  }
+
+  var trial_1 = {
+
+    type: 'external-html',
+    url: "http://labs.psychology.illinois.edu/~jy57/memory_capture/Debrief.html",
+    cont_btn: 'end',
+  }
+
+
+
+  function prepdata(data) {
+    var datacsv = "";
+    var labels = Object.keys(data); //grabs all the properties of data
+
+    for (n = 0; n < labels.length; n++) {
+      datacsv = datacsv + labels[n] + ','; // 'col1', 'col2'
+    }
+    datacsv = datacsv + '\n'; //next line
+
+    let ntoloop = data[Object.keys(data)[0]].length;
+    for (n = 0; n < ntoloop; n++) {
+      for (var i in data) {
+        if (data.hasOwnProperty(i)) {
+          datacsv = datacsv + data[i][n] + ','; //in "str" + num, num is converted to a string.
+        }
+      }
+      datacsv = datacsv + '\n';
+    }
+
+    return datacsv;
+  };
+  //turn data into a csv format
+
+  //save data to server folder
+  function saveData(name, data) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', 'write_data.php'); // 'write_data.php' is the path to the php file
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.send(JSON.stringify({ filename: name, filedata: data }));
+  }
+
+  jsPsych.init({
+    timeline: [trial_1,],
+    on_finish: function () {
+      jsPsych.data.displayData();
+    },
+    default_iti: 250
+  });
+</script>
+
+</html>

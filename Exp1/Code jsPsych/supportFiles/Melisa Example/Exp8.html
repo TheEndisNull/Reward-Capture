@@ -1,0 +1,1234 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>My experiment</title>
+
+		<script  src= "jspsych-6.1.0/jspsych.js"> </script>
+		<script src="jspsych-6.1.0/plugins/jspsych-html-keyboard-response.js"></script>
+		<script src="jspsych-6.1.0/plugins/jspsych-image-keyboard-response.js"></script>
+		<script src="jspsych-6.1.0/plugins/jspsych-html-button-response.js"></script>
+		<script src="jspsych-6.1.0/plugins/jspsych-external-html.js"></script>
+		<script src="jspsych-6.1.0/plugins/jspsych-call-function.js"></script>
+		<script src="jspsych-6.1.0/plugins/jspsych-fullscreen.js"></script>
+		<script src="jspsych-6.1.0/plugins/jspsych-survey-text.js"></script>
+		<script src="jspsych-6.1.0/plugins/jspsych-survey-multi-select.js"></script>
+		<script src="jspsych-6.1.0/plugins/jspsych-survey-multi-choice.js"></script>
+		<script src="jspsych-6.1.0/plugins/jspsych-rdk.js"></script>
+		<script src="jspsych-6.1.0/plugins/jspsych-resize.js"></script>
+
+		<script src="jspsych-6.1.0/plugins/jspsych-instructions.js"></script>
+		<script src="shuffle_tools_f.js"></script> 
+		<script src="preExp_trial_info_f.js"></script> 
+		
+		<link href="jspsych-6.1.0/css/jspsych.css" rel="stylesheet" type="text/css"></link>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+
+  </head>
+ <body>
+
+	
+  </body>
+  
+<script>
+ ////////// FUNCTIONS /////////////
+  
+ function set_html_style_1() {
+    document.body.style.backgroundColor = "#D3D3D3" // background color
+    //document.body.style.color = 'black' // font color
+}
+
+
+function prepdata(data) {
+  var datacsv = "";
+  var labels = Object.keys(data); //grabs all the properties of data
+
+  for (n = 0; n < labels.length; n++){
+    datacsv = datacsv + labels[n] + ','; // 'col1', 'col2'
+  }
+  datacsv = datacsv + '\n'; //next line
+
+  let ntoloop = data[Object.keys(data)[0]].length;
+  for (n = 0; n < ntoloop; n++){
+    for (var i in data){
+      if (data.hasOwnProperty(i)){
+        datacsv = datacsv + data[i][n] + ','; //in "str" + num, num is converted to a string.
+      }
+    }
+    datacsv = datacsv + '\n';
+  }
+
+  return datacsv;
+};
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+var timeline = [];
+
+/// CONSENT FORM
+var consent_form = {
+  type:'external-html',
+  url: "http://labs.psychology.illinois.edu/meldir/fnc_exp8/consentform_E8.html",
+  cont_btn: "start" // id of continue button, trial advances when this is clicked
+   
+};
+
+timeline.push(consent_form);
+
+//data structure for demographic info 
+var data_demo = {
+	subNum_demo: [],
+	start_time: [],
+	today_date:[],
+	today_time:[],
+	age:[],
+	college:[],
+	gender:[],
+	ethnicity:[],
+	race:[],
+	health:[]
+ 
+ }
+ 
+ 
+////////////////// DEMOGRAPHIC FORM ////////////////////////////
+var subNum_demo = jsPsych.randomization.randomID(10); //subject id will be different for demo and for experiment data
+var demofilename = "sub_demo_" + String(subNum_demo);
+
+
+//age, num years in college
+
+var demo1 = {
+  		type: 'survey-text',
+  		questions: [{prompt: "How old are you?"}, 
+  		  			{prompt: "How many years of college have you completed? (0=Freshman, 1=Sophomore, etc.)"}],
+		preamble: "<p> <strong>  DEMOGRAPHIC FORM </strong> </p>",
+		on_start: function(){
+				var today = new Date();
+				data_demo.start_time.push(today);// for time zone Tue Sep 29 2020 ...
+				data_demo.today_date.push(today.getFullYear() + '-' + (today.getMonth()+1) + '-' +today.getDate()); // 9/29/2020
+				data_demo.today_time.push(today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds()); // 12:15:10 pm
+		},		
+  		on_finish: function(data) {
+  			var d = JSON.parse(data.responses);
+			data_demo.subNum_demo.push(subNum_demo);
+  			data_demo.age.push(d.Q0);
+  			data_demo.college.push(d.Q1);
+  
+  		}
+	};
+
+//race--can choose more than one
+var demo2 = {
+		type: 'survey-multi-select',
+		questions:[{prompt: "Race: What race do you consider yourself to be?", options:["American Indian or Alaska Native", "Asian", "Black or African-American", "White", "Other"],required:true}],
+		preamble:"<p> <strong>  DEMOGRAPHIC FORM </strong> </p>",
+		on_finish: function(data){
+			var d = JSON.parse(data.responses);
+			data_demo.race.push(d.Q0);
+			
+			}
+		};
+ 
+ 
+//gender ethnicity health 
+var demo3 = {
+		type: 'survey-multi-choice',
+    	questions: [{prompt: "Gender: What best describes your gender?", options: ["Female", "Male", "Nonbinary/third gender", "Prefer not to say", "Other"], required:true}, 
+    		{prompt: "Ethnicity: Do you consider yourself to be Hispanic or Latino?", options: ["Yes", "No"], required:false}, 
+    		{prompt: "Health: How would you rate your overall health?", options: ["Much worse than average", "Somewhat worse than average", "Average", "Somewhat better than average", "Much better than average"], required:false}],
+		preamble:"<p> <strong>  DEMOGRAPHIC FORM </strong> </p>",
+		on_finish: function(data) {
+			var d = JSON.parse(data.responses);
+  			data_demo.gender.push(d.Q0);
+  			data_demo.ethnicity.push(d.Q1);
+  			data_demo.health.push(d.Q2);
+  		}
+};
+   
+
+timeline.push(demo1, demo2, demo3);
+  
+
+//save demographic data to server folder
+function saveDemoData(name, data){
+  var xhr = new XMLHttpRequest();
+  xhr.open('POST', 'exp8_demo_writedata.php'); // 'write_data.php' is the path to the php file
+  xhr.setRequestHeader('Content-Type', 'application/json');
+  xhr.send(JSON.stringify({filename: name, filedata: data}));
+}
+
+function savethedemodata() {
+  //save cleaned data
+  saveDemoData(demofilename, prepdata(data_demo));
+}
+
+var save_demo_data = {
+  type: 'call-function',
+  func: savethedemodata
+}
+
+
+timeline.push(save_demo_data);
+
+/////////////////////////////////////////    -------------  DEMO END  ---------- //////////////////////////////////////////////////////////////////////////////
+
+    
+
+var SubNum = jsPsych.randomization.randomID(10);
+var datafilename = "sub_"+String(SubNum);
+
+//force into fullscreen
+timeline.push({
+  type: 'fullscreen',
+  fullscreen_mode: true,
+  on_start: set_html_style_1
+});
+ 
+ 
+timeline.push({
+  type: 'html-keyboard-response',
+  stimulus: '<div style= "font-size:20px;" <p> <strong> Welcome to the experiment! </strong><br> <p style="color:red; font-size:25px;"> Please do NOT exit full screen until you are done with the experiment. </p>'+
+			'<p style="color:red;"> The experiment will be canceled and your data will be lost if you try to go back or refresh the page at any time during the experiment.</p>'+
+			'<p style="color:red;"> Please rely on your memory and do NOT write anything down throughout the experiment. </p>'+
+			'<br>'+ 
+			'<p style="color:black;">Press any key to continue.</p> </span>'
+});
+
+
+var preexpfilename = "sub_preexp_" + String(SubNum);
+
+
+//experiment data structure	
+
+var data_all = {
+  SubNum: [],
+  SubNum_demo: [], //delete later
+  
+  Exp_start_time: [],
+  Exp_today_date:[],
+  Exp_today_time:[],
+
+  TrialNum:[],
+  Condition: [],
+  Face:[],
+  Name:[],
+  Response:[],
+  NameAcc:[],
+  RespTime: [],
+  StudyTrialNum:[],
+  StudyFace: [],
+  StudyContext:[],
+  StudyFamCond:[],
+  TestTrialNum: [],
+  TestFace: [],
+  TestContext: [],
+  TestSDCond: [],
+  TestFamCond: [],
+  TestResponse:[],
+  TestResponseTime:[], 
+  
+  Exp_end_time:[],
+  Distractor_1_duration:[],
+  Distractor_2_duration:[]
+  
+  };
+  
+
+var preExposure_instructions = {
+            type: 'instructions',
+            pages: [
+                '<p>I want you to imagine that you just moved to a new neighborhood.</p>'+
+                '<p>In the first part of the experiment, you will be getting to know people in the neighborhood.</p>'+
+                '<p>You will be presented with their faces, one at a time, each for a few seconds.</p>'+
+                '<p>Some of the faces will have a name printed above them.</p>',
+                '<p><strong>All the faces--those with names and without names--are equally important to learn.</strong></p>'+
+                '<p>You will see the faces of your neighbors more than once.</p>'+
+                '<p>After the first presentation, you will be asked to recall the names from your memory.</p>'+
+                '<p>So be sure to learn the names!'+
+                '<p>When you can not remember the names, please make your best guess.'+
+                '<p>Click the "Next" button to start.</p>'
+            ],
+            show_clickable_nav: true,
+            post_trial_gap: 1000,
+			on_start: function(){
+					var today = new Date();
+					data_all.Exp_start_time.push(today);
+					data_all.Exp_today_date.push(today.getFullYear() + '-' + (today.getMonth()+1) + '-' +today.getDate());
+					data_all.Exp_today_time.push(today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds());
+					data_all.SubNum_demo.push(subNum_demo);
+
+			}
+        };
+        timeline.push(preExposure_instructions);
+
+/////////////////////////////////////////    -------------  PRE-EXPOSURE START  ---------- //////////////////////////////////////////////////////////////////////////////
+
+//image_name based on photo number
+//if it is face 7.jpg, the names is the 7th element in the names array
+//subtract 1 because array starts from 0. 7th element is in the index 6. 
+
+//for (var i=0; i<5;i++){
+for (var i=0; i<numPreExpTrials; i++){
+
+
+	var image_num = preExpFaces[i]; //preExpFaces is defined in preExp_trial_info_f
+	var image_name= names[image_num-1];
+
+	if (preExp_PresentationOrder[i]==0){ //familiar condition
+	
+		var PreExpFam1 = {
+			  type: 'html-keyboard-response',
+			  stimulus: '<br>',
+			  prompt: "<p> <img src=Faces/" + preExpFaces[i] +".jpg></p>",
+			  choices: jsPsych.NO_KEYS,
+			  trial_duration: 4000, //present Familiar face for 4s
+			  post_trial_gap: 750,
+			  data: {
+				trial_num: i+1,
+				face: preExpFaces[i]
+			  
+			  },
+			  on_finish: function(data){
+					data_all.SubNum.push(SubNum);
+					data_all.TrialNum.push(data.trial_num);
+					data_all.Condition.push('Familiar');
+					data_all.Face.push(data.face);
+					data_all.Name.push('NA');
+					data_all.Response.push('NA');
+					data_all.NameAcc.push('NA');
+					data_all.RespTime.push('NA');
+				}
+					
+			  };
+
+	timeline.push(PreExpFam1);
+			
+	} else if (preExp_PresentationOrder[i]==1 && i<numFaces*(2/3)){ //known faces during block 1
+		
+		//face appears for 500 ms
+		var PreExpKnow_B1_1 = {
+			type: 'html-keyboard-response',
+			stimulus: '<br>',
+			prompt: "<p> <img src=Faces/" + preExpFaces[i] +".jpg></p>",
+			choices: jsPsych.NO_KEYS,
+			trial_duration: 500			
+			};
+			
+		timeline.push(PreExpKnow_B1_1);
+		
+		// name appears together with face, and they stay on screen for 3500 ms
+		var PreExpKnow_B1_2 = {
+			type: 'html-keyboard-response',
+			stimulus: image_name.toUpperCase(),
+			prompt: "<p> <img src=Faces/" + preExpFaces[i] +".jpg></p>",
+			choices: jsPsych.NO_KEYS,
+			trial_duration: 3500//3500
+			};
+			
+			timeline.push(PreExpKnow_B1_2);	
+
+		//name disappears and the subject is asked to type in the name
+		var PreExpKnow_B1_3 = {
+			type: 'survey-text',
+			questions: [
+			{prompt: "<div <p style = 'position: relative; top: 3px;'><img src=Faces/" + preExpFaces[i] +".jpg> </p></div>", required:true}
+			],
+			preamble: "<div style='position: relative; top: 0px;'><p><br><br>Please type in the name of this person and press Enter </p></div>", 
+
+			data: {
+			
+				trial_num: i+1,
+				face: preExpFaces[i],
+				name:image_name
+			},
+			on_finish: function(data){
+				    var acc = false;
+					
+					if (data.name.toUpperCase() == JSON.parse(data.responses).Q0.toUpperCase()){
+								acc = true;
+							}
+					data.accuracy = acc;
+														 
+					data_all.SubNum.push(SubNum);
+					data_all.TrialNum.push(data.trial_num);
+					data_all.Condition.push('Know');
+					data_all.Face.push(data.face);
+					data_all.Name.push(data.name);
+					data_all.Response.push(JSON.parse(data.responses).Q0.toUpperCase());
+					data_all.NameAcc.push(data.accuracy);
+					data_all.RespTime.push(data.rt);
+							
+						}
+
+				};
+			
+		timeline.push(PreExpKnow_B1_3);	
+	
+
+		//the correct name is given to the subject
+		
+		var PreExpKnow_B1_4 = {
+			type: 'html-keyboard-response',
+			stimulus: function(){
+				//var all_data =jsPsych.data.getLastTrialData(1).values()[0];
+					image_name = jsPsych.data.getLastTrialData().values()[0].name;
+					pre_exp_face = jsPsych.data.getLastTrialData().values()[0].face;
+				 
+				 var feedback_text = '<span style="color:red; position: relative; top: 0px; font-size:20px;">Incorrect.</span>';
+				 feedback_text+= "<div style='position: relative; top: -10px;'> <p> This is <strong>" + image_name + "</strong>. </p>";
+				 feedback_text+= "<div style='position: relative; top: -14px;'> <p> <img src=Faces/" + pre_exp_face+ ".jpg> </p>";
+				 
+				 var last_resp_acc = jsPsych.data.getLastTrialData().values()[0].accuracy;
+				// console.log("last_resp_acc: " + last_resp_acc);
+				 
+				 if(last_resp_acc == true){
+					feedback_text = '<span style="color:green; position: relative; top: 0px; font-size:20px;"> Correct! </span>';
+					feedback_text+= "<div style='position: relative; top: -10px;'> <p> This is <strong>" + image_name.toUpperCase() + "</strong>.<p>";
+					feedback_text += "<div style='position: relative; top: -14px;'> <p><p> <img src=Faces/" + pre_exp_face + ".jpg> </p>"
+
+				}
+				 
+				 			
+				return feedback_text; 
+			
+				},
+
+			trial_duration:1500,
+			 post_trial_gap: 750//??
+			}
+
+			timeline.push(PreExpKnow_B1_4);	
+			
+		//////////BLOCK 2
+		} else if(preExp_PresentationOrder[i]==1 && i>(numFaces*2/3)- 1){ //block 2
+		
+			var PreExpKnow_B2p_1 = {
+			type: 'survey-text',
+			questions: [
+			{prompt: "<div <p style = 'position: relative; top: 3px;'><img src=Faces/" + preExpFaces[i] + ".jpg></p></div>", required:true}
+
+			],
+			preamble: "<div style='position: relative; top: 0px;'><p><br><br>Please type in the name of this person and press Enter </p></div>", 
+
+			data: {
+				name: image_name,
+				trial_num:i+1,
+				face: preExpFaces[i]
+			},
+			on_finish: function(data){
+						var acc = false;
+						//console.log("resp: " + data.accuracy);
+						if (data.name.toUpperCase() == JSON.parse(data.responses).Q0.toUpperCase()){
+								acc = true;
+							}
+							data.accuracy = acc;
+							console.log("acc: " + data.accuracy);
+							
+							data_all.SubNum.push(SubNum);
+							data_all.TrialNum.push(data.trial_num);
+							data_all.Condition.push('Know');
+							data_all.Face.push(data.face);
+							data_all.Name.push(data.name);
+							data_all.Response.push(JSON.parse(data.responses).Q0.toUpperCase());
+							data_all.NameAcc.push(data.accuracy);
+							data_all.RespTime.push(data.rt);
+									
+							
+						} 
+			} 
+			timeline.push(PreExpKnow_B2p_1);
+			// give feedback (block 2)
+			var PreExpKnow_B2p_2 = {
+			type: 'html-keyboard-response',
+			stimulus: function(){
+				//var all_data =jsPsych.data.getLastTrialData(1).values()[0];
+				image_name = jsPsych.data.getLastTrialData().values()[0].name;
+				pre_exp_face = jsPsych.data.getLastTrialData().values()[0].face;
+				 var last_resp_acc = jsPsych.data.getLastTrialData().values()[0].accuracy;
+				// console.log("last_resp_acc: " + last_resp_acc);
+				
+ 				var feedback_text = '<span style="color:red; position: relative; top: 0px; font-size:20px;">Incorrect.</span>';
+				 feedback_text+= "<div style='position: relative; top: -10px;'> <p> This is <strong>" + image_name + "</strong>. </p>";				 ;
+				 feedback_text+= "<div style='position: relative; top: -14px;'> <p> <img src=Faces/" + pre_exp_face+ ".jpg> </p>";
+				 
+				 if(last_resp_acc == true){
+					feedback_text = '<span style="color:green; position: relative; top: 0px; font-size:20px;"> Correct! </span>';
+					feedback_text+= "<div style='position: relative; top: -10px;'> <p> This is <strong> " + image_name.toUpperCase() + "</strong>. </p>";
+					feedback_text += "<div style='position: relative; top: -14px;'> <p><p> <img src=Faces/" + pre_exp_face + ".jpg> </p>"
+				 }
+				 
+				 			
+				return feedback_text; 
+			
+				},
+				
+			trial_duration:1500,
+			 post_trial_gap: 750
+			}
+
+			timeline.push(PreExpKnow_B2p_2);	
+
+		}
+	
+	};
+	
+	
+
+	//END OF PRE-EXPOSURE
+	
+/////////////////////////////////////    START DISTRACTOR /////////////////////////////////////////////////
+
+var end_pre_exp_time = [];	
+
+
+//instructions block
+var distractor_instructions_1 = {
+  type: 'instructions',
+  pages: [
+    "<p> Now you will play a game for 2 minutes. In this game, you will be making judgments about the movement of particles in a dish.</p>" +
+    "<p> There will be a lot of particles in the dish, and many of them will be moving in random directions.</p>"+
+    "<p> But a subset of them will all be moving to the left or to the right. </p>"+
+    "<p> Your job is to decide if that subset of particles are moving left or right.</p>",
+
+    "Here is an example of a dish where the particles are moving left."
+  ],
+  show_clickable_nav : true,
+  on_start: function(){
+		end_pre_exp_time = performance.now(); //when pre-exposure ends
+		//console.log(end_pre_exp_time);
+ }
+};
+
+var distractor_instructions_2 = {
+	type: 'instructions',
+	pages: [
+	'Here is an example of a dish where the particles are moving right.'
+	],
+	
+	show_clickable_nav: true
+	};
+	
+var distractor_instructions_3 = {
+	type: 'instructions',
+	pages: [
+    "<p> Because you will see the dishes for very short durations, it will sometimes be difficult to figure out the direction of the particles. </p>"+
+	"<p> Try to make your best guess. </p>"+
+    "<p> Press next to start the game. </p>"
+  ],
+  show_clickable_nav : true
+	};
+	
+//example moving left
+var ex1 = {
+  type: "rdk",
+  post_trial_gap: 0,
+  number_of_dots: 200,
+  RDK_type: 3,
+  aperture_type: 1, //circle
+  aperture_width: 300,
+  border: true,
+  response_ends_trial: false,
+  border_thickness: 3,
+  background_color: "#D3D3D3",
+  dot_color: "black",
+  correct_choice: ["l"],
+  coherent_direction: 180,
+  trial_duration: 5000,
+  on_start: function(trial) {
+    trial.coherence = 0.5;
+    trial.aperture_center_x = window.innerWidth/2;
+    //console.log(all_trials_holes[t]);
+    //console.log(trial.aperture_center_x);
+    trial.aperture_center_y = window.innerHeight/2;
+    //trial.coherent_direction = design[t].direction;
+  }
+};
+
+
+var ex2 = {
+  type: "rdk",
+  post_trial_gap: 0,
+  number_of_dots: 200,
+  RDK_type: 3,
+  aperture_type: 1, //circle
+  aperture_width: 300,
+  border: true,
+  response_ends_trial: false,
+  border_thickness: 3,
+  background_color: "#D3D3D3",
+  dot_color: "black",
+  correct_choice: ["l"],
+  coherent_direction: 0,
+  trial_duration: 5000,
+  on_start: function(trial) {
+    trial.coherence = 0.5;
+    trial.aperture_center_x = window.innerWidth/2;
+    //console.log(all_trials_holes[t]);
+    //console.log(trial.aperture_center_x);
+    trial.aperture_center_y = window.innerHeight/2;
+    //trial.coherent_direction = design[t].direction;
+  }
+};
+
+/////////////////////////////////////   Show distractor instructions /////////////////////////////////////////////////
+
+timeline.push(distractor_instructions_1, ex1, distractor_instructions_2, ex2, distractor_instructions_3);
+
+
+
+
+var direction = [180, 0];
+
+var coherence_level = [];
+
+var coh_dir = [];
+var dir  = 'right';
+var choice =[];
+
+//30 levels from 1% to 30%
+for (i = 1; i<=30; i+=1) {
+  coherence_level.push(i/100);
+}
+
+
+var rdk_fixation = {
+  type: "rdk",
+  post_trial_gap: 0,
+  number_of_dots: 0,
+  RDK_type: 3,
+  aperture_type: 1, //circle
+  aperture_width: 300,
+  border: true,
+  fixation_cross:true,
+  response_ends_trial: false,
+  border_thickness: 3,
+  background_color: "#D3D3D3",
+  dot_color: "black",
+  correct_choice: ["l"],
+  coherent_direction: function(){shuffle(direction)[0]},
+  trial_duration: 1000,
+  on_start: function(trial) {
+    //trial.coherence = shuffle(coherence_level)[0];
+    trial.aperture_center_x = window.innerWidth/2;
+    //console.log(all_trials_holes[t]);
+    //console.log(trial.aperture_center_x);
+    trial.aperture_center_y = window.innerHeight/2;
+    //trial.coherent_direction = design[t].direction;
+
+	}
+  };
+  
+  
+  
+var rdk_trial = {
+  type: "rdk",
+  post_trial_gap: 0,
+  number_of_dots: 200,
+  RDK_type: 3,
+  aperture_type: 1, //circle
+  aperture_width: 300,
+  border: true,
+  response_ends_trial: false,
+  border_thickness: 3,
+  background_color: "#D3D3D3",
+  dot_color: "black",
+  //coherent_direction: shuffle([0,180])[0],//0
+  correct_choice: ['l'],
+  trial_duration: 500,
+  
+
+  on_start: function(trial) {
+	trial.coherent_direction= shuffle([0,180])[0],//0
+	coh_dir = trial.coherent_direction;
+	//console.log("coh_dir rdk trial: " + coh_dir);
+	//console.log("trial.coherent_direction: " + trial.coherent_direction);
+    trial.coherence = shuffle(coherence_level)[0];
+	//console.log("coh lev rdk trial: " + trial.coherence);
+    trial.aperture_center_x = window.innerWidth/2;
+	//console.log("coh dir: "  +  trial.coherent_direction);
+
+    //console.log(all_trials_holes[t]);
+    //console.log(trial.aperture_center_x);
+    trial.aperture_center_y = window.innerHeight/2;
+    //trial.coherent_direction = design[t].direction;
+
+	
+	if (trial.coherent_direction == 180){
+		dir = "left";
+	}else{
+		dir = "right";
+	}
+
+  }
+ };
+  
+
+
+ var response_trial = {
+  type: 'html-button-response',
+  stimulus: 'What direction do you think the dots were moving?',
+  choices: ['Left', 'Right'],
+  on_start: function(trial) {
+	trial.windowHeight = window.innerHeight;
+    trial.CenterY = window.innerHeight*(1/2);
+    
+  },
+  on_start: set_html_style_1,
+  on_finish: function(data) {
+	
+    choice = data.button_pressed;
+	
+
+  }
+};
+  
+var feedback_trial = {
+	type: 'html-keyboard-response',
+	stimulus: '',
+	trial_duration:1500,
+	on_start:function(trial){
+		if ( (choice==0 && coh_dir == 180) || (choice==1 && coh_dir == 0) ){
+			trial.stimulus = "<font color='green'>Correct!</font><p>The dots were moving " + dir + ".</p>";
+
+		}else{
+			trial.stimulus = "<font color='red'>Incorrect!</font><p>The dots were moving " + dir + ".</p>";
+		}
+	}
+
+};
+
+var loop_trials_1 = { //distractor task
+  timeline: [rdk_fixation, rdk_trial, response_trial, feedback_trial],
+  loop_function: function(){
+	var time_elapsed = performance.now() - end_pre_exp_time;
+	
+	if (time_elapsed >= 2*60*1000){ //if XX ms have elapse since the start of loop_trials, end it
+		return false;
+	}else{
+		return true;
+	}
+  }
+};
+
+timeline.push(loop_trials_1); //distractor task after pre_exposure
+
+/////////////////////////////////////    END DISTRACTOR /////////////////////////////////////////////////
+	
+	
+//SET STUDY STIMULI
+
+// array with 0, 1 and 2s randomly ordered such that no more than 2 of one condition can follow each other	
+// 0 = FAMILIAR, 1=KNOW, 2=UNFAMILIAR
+var	studyPresentationOrder = construct_study_array_v2();
+var numStudyTrials = studyPresentationOrder.length; //should be 72
+
+//console.log("studyPresentationOrder: " + studyPresentationOrder);
+
+//shuffle faces from each condition so that each subject gets a different order
+
+var studyBlock1 = shuffle(famFaces).concat(shuffle(knowFaces)).concat( shuffle(unfamFaces) );
+var studyBlock2 = shuffle(famFaces).concat( shuffle(knowFaces) ).concat(shuffle(unfamFaces) );
+var study = studyBlock1.concat(studyBlock2);
+
+//console.log("study b1: " + studyBlock1);
+
+
+//the face stimuli to be presented in each block of the study session in the order in which they will be presented
+var study_b1 = [];//faces in block 1
+var study_b2 =[];//^^ in block 2
+
+// the contexts to be presented in each block of the study session in the order in which they will be presented. 
+var c_study_b1 = [];//contexts in block 1
+var c_study_b2 = [];//^^ in block 2
+
+var f = 0; //starting index of familiar faces
+var k= numStudyTrials/6; //starting index of known faces		
+var u = numStudyTrials/3;//starting index of unfamiliar faces
+
+//determine which faces and contexts are going to be presented in each index in study block 1
+
+var c1 =0; 
+var c2=0; 
+var c3=0;
+for (var i=0; i<numStudyTrials/2; i++){
+
+	if (studyPresentationOrder[i] == 0) {//Familiar 
+		 study_b1[i] = studyBlock1[f];
+		 c_study_b1[i] = famContexts[c1];
+		 
+		 f +=1;
+		 c1+=1;
+	} else if(studyPresentationOrder[i] ==1) { //Know
+		study_b1[i] = studyBlock1[k];
+		c_study_b1[i] = knowContexts[c2];
+		
+		k +=1;
+		c2+=1;
+	} else if(studyPresentationOrder[i] ==2) {//Unfamiliar
+		study_b1[i]= studyBlock1[u]; 
+		c_study_b1[i] = unfamContexts[c3];
+		
+		u +=1;
+		c3 +=1;
+	}
+};
+
+var f = 0; //starting index of familiar faces
+var k= numStudyTrials/6; //starting index of known faces
+var u = numStudyTrials/3;//starting index of unfamiliar faces
+
+//find index of current face in study_b1, and then find the matching context
+//the c_study_b1 array has contexts that match each face's context in block 1
+for (var i=0; i<numStudyTrials/2; i++){
+	if (studyPresentationOrder[i+(numStudyTrials/2)]== 0){
+		study_b2[i]= studyBlock2[f];
+		var curFaceInd = study_b1.indexOf(studyBlock2[f]);//find index of the face in the study block 1
+		c_study_b2[i] = c_study_b1[curFaceInd];
+		
+		f +=1;
+	}else if(studyPresentationOrder[i+(numStudyTrials/2)]==1){
+		study_b2[i]=studyBlock2[k];
+		var curFaceInd = study_b1.indexOf(studyBlock2[k]);
+		c_study_b2[i] = c_study_b1[curFaceInd];
+		
+		k+=1;
+	}else if(studyPresentationOrder[i+(numStudyTrials/2)]==2){
+		study_b2[i]=studyBlock2[u];
+		var curFaceInd = study_b1.indexOf(studyBlock2[u]);
+		c_study_b2[i] = c_study_b1[curFaceInd];
+		
+		u +=1;
+	}
+};
+
+
+
+var studyContexts = c_study_b1.concat(c_study_b2);
+var studyFaces = study_b1.concat(study_b2);
+
+
+var ready = [];
+
+//SHOW STUDY INSTRUCTIONS
+var study_instructions = {
+      type: "html-keyboard-response",
+      stimulus: '<p>Now you will see faces of criminals presented on background scenes.</p>'+
+				'<p>Each face will have its unique background scene. </p>' +
+				'<p>Some of these faces belong to your neighbors and some are new faces. </p>' +
+			 	'<p> <strong>Please pay attention to the background scene that is presented with each face.</strong> </p>'+
+				'<p>You will later be tested on your memory for the association between each face and scene. <p>' +	
+				'<br> <br> <br> <p> Press any key to continue. <p>',
+			 
+			post_trial_gap:1000,
+			on_start: function(){
+				data_all.Distractor_1_duration.push(performance.now() - end_pre_exp_time);
+
+			}
+			 
+		};
+
+var ready_to_study ={
+	type: 'html-button-response',
+	stimulus: 'Are you ready to start studying?',
+	choices: ['No, show me the instructions again.', 'Yes, let me start!'],
+	on_finish: function(data){
+		ready= data.button_pressed;
+	}
+
+};
+
+var check_resp = {
+	timeline: [study_instructions],
+	conditional_function: function(){
+			if (ready == 0) {
+				return true;
+			} else {
+			 return false;
+			}
+	}
+};
+
+	
+timeline.push(study_instructions,ready_to_study, check_resp);	//study instructions 
+
+// grid_stimulus will now contain a string (NOT an HTML DOM object) that you can
+// pass into other plugins that accept HTML stimuli as input, such as jspsych-html-keyboard-response.	
+
+var interStudyInstruction = {
+			type: 'html-keyboard-response',
+			stimulus: '<p> Now, you will study the same criminals with the same background scenes again. <br> <br> <br> Press any key to continue.'
+		};
+
+//////////////////////////////////////         STUDY        ///////////////////////////////////////////////////
+//for (var i=0; i<5; i++){			
+for (var i=0; i<studyContexts.length; i++){
+	//present context for 750 ms first
+	var contextTrial = {
+		type: "html-keyboard-response",
+		stimulus: '<div style = "width:800px; height: 600px; position: relative; top: 0px; left: 0px;"> <img src= Contexts/' + 
+				studyContexts[i]+ '.bmp style="width:800px; height:600px; position: relative;top:0px;left:0px;"> </img> </div>' ,
+		trial_duration:750,
+	
+		choices: jsPsych.NO_KEYS
+	};
+
+	
+	timeline.push(contextTrial); 
+	
+	var conImgSource = "Contexts/" + studyContexts[i] + ".bmp";  
+	var faceImgSource = "Faces/" + studyFaces[i] + ".jpg";
+	
+	//show face together with context for 3250 more ms
+	var contextFaceTrial = {
+		type: "html-keyboard-response",
+		stimulus:  '<div style="width:800px; height: 600px; position: relative;">'+
+		'<img src=' + conImgSource + ' style="width:800px; height:600px; position: relative;top:0px;left:0px;"></img>'+
+		'<img src=' + faceImgSource + ' style="width:250px; height: 250px; position:absolute; top:175px; left:275px;"></img>'+
+		'</div>',
+			
+		trial_duration: 3250,
+		post_trial_gap: 500,
+		data:{
+			s_trial_num: i+1,
+			s_context: studyContexts[i],
+			s_face: studyFaces[i],
+			s_cond_fam: studyPresentationOrder[i]
+			},
+		choices: jsPsych.NO_KEYS,
+		on_finish: function(data){
+				data_all.StudyTrialNum.push(data.s_trial_num);
+				data_all.StudyFace.push(data.s_face);
+				data_all.StudyContext.push(data.s_context);
+				data_all.StudyFamCond.push(data.s_cond_fam);
+		}
+
+		};
+	
+
+		
+	  timeline.push(contextFaceTrial); //this runs study
+	
+	if (i==(studyContexts.length/2)-1){
+		timeline.push(interStudyInstruction)
+	} 
+};			
+
+
+
+
+///////////////////////////////////DISTRACTOR 2//////////////////////////////////////////////////////
+var end_study_time =[];
+
+var distractor_after_study = {
+	type: 'instructions',
+	pages:["<p> The study phase is over. Now you will give another short break for 1 minute.</p>"+
+		   "<p> During this break, you will again play the dot game you played earlier.</p>" +
+		   "<p> Press NEXT to start the game. </p>"],
+	show_clickable_nav: true,
+	on_start: function(){
+		end_study_time= performance.now();
+		//console.log("on_s end study time: " + end_study_time);
+	}
+			   
+};
+
+
+timeline.push(distractor_after_study);
+
+var loop_trials_2 = { //distractor task
+  timeline: [rdk_fixation, rdk_trial, response_trial, feedback_trial],
+  loop_function: function(){
+	var time_elapsed_2 = performance.now() - end_study_time;
+		//console.log("time elapsed: " + end_study_time);
+		//console.log(time_elapsed_2);
+	if (time_elapsed_2 >= 1*60*1000){ //if XX ms have elapse since the start of loop_trials, end it
+		return false;
+	}else{
+		return true;
+	}
+  }
+};
+
+timeline.push(loop_trials_2);
+
+////////////////////Show test instructions
+var test_instructions = {
+      type: "html-keyboard-response",
+      stimulus: "<p> In this test, you must decide whether the criminal face I show you is presented with the same background scene as before or not.</p>"+
+				"<p> If you are not sure, please make your best guess.<p>"+
+				"<br> <br> <br> <p> Press any key to start. </p>",
+			post_trial_gap:1000,
+			on_start: function(){
+				data_all.Distractor_2_duration.push(performance.now() - end_study_time);
+			}
+			 
+		};
+timeline.push(test_instructions);	//test instructions
+	
+
+var stimuliInfo = {
+	pre_exp_faces: preExpFaces,
+	study_faces: study_b1,
+	study_contexts: c_study_b1,
+	study_familiarity_condition:studyPresentationOrder.slice(0, 36), //change to 36
+	recog_sameDiffCond:fillArray(-1,36), //change to 36  (0=same 1= different context)
+	recog_faces: shuffle(faces),
+	recog_familiarity_condition: fillArray(-1,36),//36
+	recog_study_contexts: [],
+	recog_contexts: fillArray(-1,36)
+	
+	};
+	
+
+ 
+var currentFace = -1;
+var currectFaceStudyContext = -1;
+var currentFaceCond = -1;
+
+
+
+for (var i=0; i<stimuliInfo.recog_faces.length; i++){
+	currentFace = stimuliInfo.recog_faces[i];
+	//what is the presented face in this trial? = currentFace
+	//find the index of that face in the study list
+	//find its familiarity condition and context using that index
+	stimuliInfo.recog_familiarity_condition [i] = stimuliInfo.study_familiarity_condition[stimuliInfo.study_faces.indexOf(currentFace)];
+	stimuliInfo.recog_study_contexts[i] = stimuliInfo.study_contexts[stimuliInfo.study_faces.indexOf(currentFace)];
+	stimuliInfo.recog_contexts[i] = stimuliInfo.study_contexts[stimuliInfo.study_faces.indexOf(currentFace)];
+	//sameCond is defined in preExp_trial_info_f
+	
+	if ( sameCond.includes(currentFace) == 1 ){// if the current face belongs to the same condition, give 0, if not 1
+		stimuliInfo.recog_sameDiffCond[i]=0; //same
+		}else{
+		stimuliInfo.recog_sameDiffCond[i]=1; //different
+		}
+	//create arrays contexts assigned to each familiarity condition
+
+};
+
+
+var diffFamContext = [];
+var diffFamContext_f =[];
+var diffKnowContext = [];
+var diffKnowContext_f =[];
+var diffUnfamContext = [];
+var diffUnfamContext_f = [];
+
+var f = 0;
+var  k = 0;
+var  u = 0;
+
+for (var i=0; i<stimuliInfo.recog_faces.length; i++){
+	
+	if (stimuliInfo.recog_sameDiffCond[i] == 1){ // different cond
+	
+		if (stimuliInfo.recog_familiarity_condition[i] == 0) {//fam
+			diffFamContext[f]= stimuliInfo.recog_study_contexts[i];
+			f = f+1;
+			
+			} else if (stimuliInfo.recog_familiarity_condition[i] == 1){//know
+			  diffKnowContext[k] = stimuliInfo.recog_study_contexts[i];
+			  k = k+1;
+			}else if (stimuliInfo.recog_familiarity_condition[i] == 2){//know
+			  diffUnfamContext[u] = stimuliInfo.recog_study_contexts[i];
+			  u = u+1;
+			}
+	}
+
+}
+
+
+var n =1;
+
+for (var i=0; i<6; i+=2){
+	diffFamContext_f[n] = diffFamContext[i];//0.2.4
+	diffFamContext_f[n-1] = diffFamContext[i+1]; //1.3.5
+	diffKnowContext_f[n] = diffKnowContext[i];//0.2.4
+	diffKnowContext_f[n-1] = diffKnowContext[i+1]; //1.3.5
+	diffUnfamContext_f[n] = diffUnfamContext[i];//0.2.4
+	diffUnfamContext_f[n-1] = diffUnfamContext[i+1]; //1.3.5
+	n=n+2;
+}
+console.log(diffFamContext_f);
+console.log(diffFamContext);
+
+
+var a = 0;
+var b = 0;
+var c = 0;
+
+for (var i=0; i<stimuliInfo.recog_faces.length; i++){
+
+	if ( stimuliInfo.recog_sameDiffCond[i]==0 ){//same
+			//do nothing
+		}else if (stimuliInfo.recog_sameDiffCond[i]==1){//differnt
+			if (stimuliInfo.recog_familiarity_condition[i]==0){//familiar
+				stimuliInfo.recog_contexts[i] = diffFamContext_f[a];
+				a= a+1;
+			}else if (stimuliInfo.recog_familiarity_condition[i]==1){//know
+				stimuliInfo.recog_contexts[i] = diffKnowContext_f[b];
+				b= b+1;
+			}else if (stimuliInfo.recog_familiarity_condition[i]==2){//unfam
+				stimuliInfo.recog_contexts[i] = diffUnfamContext_f[c];
+				c= c+1;
+			}
+
+		}
+}
+
+
+
+
+
+
+   
+   // Start the recognition phase
+   
+//for (var i =0; i<5; i++){
+for (var i = 0; i<stimuliInfo.recog_faces.length; i++){
+//show context first
+	var test_contextTrial = {
+		type: "html-keyboard-response", 
+		stimulus: '<div style = "width:700px; height: 525px; position: relative; top: 0px; left: 0px;"> <img src= Contexts/' + 
+				stimuliInfo.recog_contexts[i]+ '.bmp style="width:700; height:525px; position: relative;top:-59px;left:0px;"> </img> </div>',
+		trial_duration:750,
+		choices: jsPsych.NO_KEYS
+		}
+ 
+	timeline.push(test_contextTrial)
+ //show face and ask the context question
+	var test_faceConMatchTrial = {
+		type:'html-button-response',
+		stimulus: '<div style="width:700px; height: 525px; position: relative;">'+
+		'<img src=Contexts/' + stimuliInfo.recog_contexts[i] + '.bmp style="width:700px; height:525px; position: relative;top:0px;left:0px;"></img>'+
+		'<img src=Faces/' + stimuliInfo.recog_faces[i] + '.jpg style="width:218.75px; height: 218.75px; position:absolute; top:153.13px; left:240.63px;"></img>'+
+		'</div>',
+		prompt: '<div> <p> Did you study this face with this background scene? </p> </div>'	,
+		choices: ['Yes', 'No'],
+		post_trial_gap:500,
+		data: {
+			test_trial_num: i+1,
+			test_face: stimuliInfo.recog_faces[i],
+			test_context:stimuliInfo.recog_contexts[i],
+			cond_sd: stimuliInfo.recog_sameDiffCond[i],//same-different context condition
+			cond_fam: stimuliInfo.recog_familiarity_condition[i]
+		},
+		on_finish: function(data){
+			data_all.TestTrialNum.push(data.test_trial_num);
+			data_all.TestFace.push(data.test_face);
+			data_all.TestContext.push(data.test_context);
+			data_all.TestSDCond.push(data.cond_sd);
+			data_all.TestFamCond.push(data.cond_fam);
+			data_all.TestResponse.push(data.button_pressed);
+			data_all.TestResponseTime.push(data.rt);
+			
+		}
+	}
+	timeline.push(test_faceConMatchTrial);
+ }  
+   
+
+
+//turn data into a csv format
+var prepped_data = prepdata(data_all);
+   
+
+
+//save data to server folder
+function saveData(name, data){
+  var xhr = new XMLHttpRequest();
+  xhr.open('POST', 'exp8_writedata.php'); // 'write_data.php' is the path to the php file
+  xhr.setRequestHeader('Content-Type', 'application/json');
+  xhr.send(JSON.stringify({filename: name, filedata: data}));
+}
+
+
+
+function savethedata() {
+  //save cleaned data
+  saveData(datafilename, prepdata(data_all));
+}
+
+var save_data = {
+  type: 'call-function',
+  func: savethedata,
+  
+	on_start: function(){
+			var today = new Date();
+			data_all.Exp_end_time.push(today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds());
+
+	
+	}
+}
+   
+timeline.push(save_data);
+   
+var faceimages= fillArray(-1, 36);
+var contextimages = fillArray(-1,36);
+
+for (var i=1; i<37; i++){
+faceimages[i-1]= "Faces/" + i + ".jpg";
+contextimages[i-1]="Contexts/" +i + ".bmp";
+}
+
+allImages = faceimages.concat(contextimages);
+
+
+var debrief_form = {
+	type: 'external-html',
+	url: "http://labs.psychology.illinois.edu/meldir/fnc_exp8/debriefform_E8.html",
+	cont_btn:"end"
+};
+
+timeline.push(debrief_form);
+ 
+//force into fullscreen
+timeline.push({
+  type: 'fullscreen',
+  fullscreen_mode: false,
+  on_start: set_html_style_1
+});
+  
+  
+var sona ={
+	type: 'call-function',
+	func:gotoSona 	
+}
+
+timeline.push(sona);
+
+var ppn = jsPsych.data.urlVariables()['id'];
+
+function gotoSona (){
+	survey_link = "https://uiuc.sona-systems.com/services/SonaAPI.svc/WebstudyCredit?experiment_id=1630&credit_token=f9b4d0787dae4d6ca27b62c062214864&survey_code="+ppn;
+	window.location = survey_link;
+}
+
+	
+/* start the experiment */
+jsPsych.init({
+      timeline: timeline,
+		exclusions: {
+			min_width: 1000,
+			min_height: 500
+		},
+	   preload_images: allImages,
+	   on_finish: function(){
+		gotoSona();
+	   },
+	   on_interaction_data_update: function(data){
+	   		saveData("sub_XXX_" + String(SubNum), prepdata(data_all));
+		
+		//console.log("event: " + int_data.event);
+	
+	   }
+		//console.log("2" + jsPsych.data.getInteractionData());
+	});
+		
+
+
+  </script>
+  
+
+</html>

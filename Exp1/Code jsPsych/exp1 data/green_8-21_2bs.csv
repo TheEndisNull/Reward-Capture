@@ -1,0 +1,3 @@
+"rt","response","question_order","trial_type","trial_index","time_elapsed","internal_node_id","subject","condition"
+"1324.1000000014901","{""Q0"":""""}","[0]","survey-multi-choice","0","1325","0.0-0.0-0.0","2bs","[""green""]"
+"680","{""Q0"":[]}","[0]","survey-multi-select","1","2011","0.0-0.0-1.0","2bs","[""green""]"
