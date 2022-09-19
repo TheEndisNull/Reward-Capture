@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="jspsych-6.2.0/jspsych.js"></script>
+    <script src='jspsych-6.2.0/plugins/jspsych-html-keyboard-response.js'></script>
+    <script src='jspsych-6.2.0/plugins/jspsych-fullscreen.js'></script>
+    <script src="jspsych-6.2.0/plugins/jspsych-categorize-html.js"></script>
+    <script src="jspsych-6.2.0/plugins/jspsych-external-html.js"></script>
+    <script src="jspsych-6.2.0/plugins/jspsych-survey-multi-select.js"></script>
+    <script src="jspsych-6.2.0/plugins/jspsych-instructions.js"></script>
+    <script src="jspsych-6.2.0/plugins/jspsych-survey-text.js"></script>
+    <script src="jspsych-6.2.0/plugins/jspsych-survey-multi-select.js"></script>
+    <script src="jspsych-6.2.0/plugins/jspsych-survey-multi-choice.js"></script>
+    <script src="jspsych-6.2.0/plugins/jspsych-call-function.js"></script>
+
+    <link href="jspsych-6.2.0/css/jspsych.css" rel="stylesheet">
+</head>
+
+<body></body>
+<script>
+    var subjectID = jsPsych.randomization.randomID(10);
+    var conditionColor = jsPsych.randomization.sampleWithoutReplacement(['red', 'green'], 1) //////////////////////CHANGE FOR TROUBLESHOOTING//////////////////////////////
+    var keys = jsPsych.randomization.shuffle([jsPsych.pluginAPI.convertKeyCharacterToKeyCode('z'), jsPsych.pluginAPI.convertKeyCharacterToKeyCode('m')])
+
+    jsPsych.data.addProperties({
+        subject: subjectID,
+        condition: conditionColor,
+    })
+
+    ////////////////////////////////////////////////////////////////////VDAC Task////////////////////////////////////////////////////////////////////
+
+
+
+    var rewardTotal = Math.round(0)
+    var fixationStim = '<svg viewBox="0 0 100 100" > <path d="M 50 52 L 50 48" stroke="black" stroke-width=".5"/> <path d="M 52 50 L 48 50" stroke="black" stroke-width=".5"/>'
+    var attentionCounter = [0, 0, 0, 0, 0]
+    function singletonStimTraining(tgtPosition, tgtColor, tgtOrientation) {
+        var colors = jsPsych.randomization.shuffle(['cyan', 'blueviolet', 'black', 'magenta', 'gold'])
+        colors.splice(tgtPosition, 0, tgtColor)
+        var angle = []
+        for (i = 0; i < 5; i++) {
+            if (Math.random() < 0.5) {
+                angle[i] = '45'
+            } else {
+                angle[i] = '-45'
+            }
+        }
+        if (tgtOrientation == 'h') {
+            angle.splice(tgtPosition, 0, '90')
+        } else if (tgtOrientation == 'v') {
+            angle.splice(tgtPosition, 0, '0')
+        }
+        var svg = '<svg viewBox="0 0 100 100" >' +
+            '<text font-size="2" text-anchor="middle" font-family="sans-serif" x="50" y="98">(V)ertical or (H)orizontal</text>' +
+            '<circle cx="50" cy="50" r="10" fill="none" transform="translate( 26  15)" stroke="' + colors[0] + '" />' +
+            '<circle cx="50" cy="50" r="10" fill="none" transform="translate(  0  30)" stroke="' + colors[1] + '" />' +
+            '<circle cx="50" cy="50" r="10" fill="none" transform="translate(-26  15)" stroke="' + colors[2] + '" />' +
+            '<circle cx="50" cy="50" r="10" fill="none" transform="translate(-26 -15)" stroke="' + colors[3] + '" />' +
+            '<circle cx="50" cy="50" r="10" fill="none" transform="translate(  0 -30)" stroke="' + colors[4] + '" />' +
+            '<circle cx="50" cy="50" r="10" fill="none" transform="translate( 26 -15)" stroke="' + colors[5] + '" />' +
+            '<path d="M 50 57 L 50 43" stroke="black" transform="translate( 26  15) rotate(' + angle[0] + ' 50 50)"/>' +
+            '<path d="M 50 57 L 50 43" stroke="black" transform="translate(  0  30) rotate(' + angle[1] + ' 50 50)"/>' +
+            '<path d="M 50 57 L 50 43" stroke="black" transform="translate(-26  15) rotate(' + angle[2] + ' 50 50)"/>' +
+            '<path d="M 50 57 L 50 43" stroke="black" transform="translate(-26 -15) rotate(' + angle[3] + ' 50 50)"/>' +
+            '<path d="M 50 57 L 50 43" stroke="black" transform="translate(  0 -30) rotate(' + angle[4] + ' 50 50)"/>' +
+            '<path d="M 50 57 L 50 43" stroke="black" transform="translate( 26 -15) rotate(' + angle[5] + ' 50 50)"/>' +
+            '<path d="M 50 52 L 50 48" stroke="black" stroke-width=".5"/> <path d="M 52 50 L 48 50" stroke="black" stroke-width=".5"/>' +
+            '</svg>'
+        return svg
+    }
+    function singletonStim(tgtPosition, tgtColor, tgtOrientation) {
+        var colors = jsPsych.randomization.shuffle(['cyan', 'blueviolet', 'black', 'magenta', 'gold'])
+        colors.splice(tgtPosition, 0, tgtColor)
+        var angle = []
+        for (i = 0; i < 5; i++) {
+            if (Math.random() < 0.5) {
+                angle[i] = '45'
+            } else {
+                angle[i] = '-45'
+            }
+        }
+        if (tgtOrientation == 'h') {
+            angle.splice(tgtPosition, 0, '90')
+        } else if (tgtOrientation == 'v') {
+            angle.splice(tgtPosition, 0, '0')
+        }
+        var svg = '<svg viewBox="0 0 100 100" >' +
+            '<circle cx="50" cy="50" r="10" fill="none" transform="translate( 26  15)" stroke="' + colors[0] + '" />' +
+            '<circle cx="50" cy="50" r="10" fill="none" transform="translate(  0  30)" stroke="' + colors[1] + '" />' +
+            '<circle cx="50" cy="50" r="10" fill="none" transform="translate(-26  15)" stroke="' + colors[2] + '" />' +
+            '<circle cx="50" cy="50" r="10" fill="none" transform="translate(-26 -15)" stroke="' + colors[3] + '" />' +
+            '<circle cx="50" cy="50" r="10" fill="none" transform="translate(  0 -30)" stroke="' + colors[4] + '" />' +
+            '<circle cx="50" cy="50" r="10" fill="none" transform="translate( 26 -15)" stroke="' + colors[5] + '" />' +
+            '<path d="M 50 57 L 50 43" stroke="black" transform="translate( 26  15) rotate(' + angle[0] + ' 50 50)"/>' +
+            '<path d="M 50 57 L 50 43" stroke="black" transform="translate(  0  30) rotate(' + angle[1] + ' 50 50)"/>' +
+            '<path d="M 50 57 L 50 43" stroke="black" transform="translate(-26  15) rotate(' + angle[2] + ' 50 50)"/>' +
+            '<path d="M 50 57 L 50 43" stroke="black" transform="translate(-26 -15) rotate(' + angle[3] + ' 50 50)"/>' +
+            '<path d="M 50 57 L 50 43" stroke="black" transform="translate(  0 -30) rotate(' + angle[4] + ' 50 50)"/>' +
+            '<path d="M 50 57 L 50 43" stroke="black" transform="translate( 26 -15) rotate(' + angle[5] + ' 50 50)"/>' +
+            '<path d="M 50 52 L 50 48" stroke="black" stroke-width=".5"/> <path d="M 52 50 L 48 50" stroke="black" stroke-width=".5"/>' +
+            '</svg>'
+        return svg
+    }
+    var consent = {
+        timeline: [
+            {
+                type: 'fullscreen',
+                fullscreen_mode: true,
+            },
+            {
+                type: 'external-html',
+                url: "http://labs.psychology.illinois.edu/~jy57/memory_capture/support/FilesConsent.html",
+                cont_btn: "start" // id of continue button, trial advances when this is clicked
+
+            },
+
+        ]
+    }
+
+    ////////////////// DEMOGRAPHIC FORM ////////////////////////////
+
+    var data_demo = {
+        subNum_demo: [],
+        start_time: [],
+        today_date: [],
+        today_time: [],
+        age: [],
+        college: [],
+        gender: [],
+        ethnicity: [],
+        race: [],
+        health: []
+    }
+
+    var subNum_demo = jsPsych.randomization.randomID(10); //subject id will be different for demo and for experiment data
+    var demofilename = "sub_demo_" + String(subNum_demo);
+    var demo1 = {
+        type: 'survey-text',
+        questions: [{ prompt: "How old are you?" },
+        { prompt: "How many years of college have you completed? (0=Freshman, 1=Sophomore, etc.)" }],
+        preamble: "<p> <strong>  DEMOGRAPHIC FORM </strong> </p>",
+        on_start: function () {
+            var today = new Date();
+            data_demo.start_time.push(today);// for time zone Tue Sep 29 2020 ...
+            data_demo.today_date.push(today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate()); // 9/29/2020
+            data_demo.today_time.push(today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds()); // 12:15:10 pm
+        },
+        on_finish: function (data) {
+            var d = JSON.parse(data.responses);
+            data_demo.subNum_demo.push(subNum_demo);
+            data_demo.age.push(d.Q0);
+            data_demo.college.push(d.Q1);
+
+        }
+    };
+    var demo2 = {
+        type: 'survey-multi-select',
+        questions: [{ prompt: "Race: What race do you consider yourself to be?", options: ["American Indian or Alaska Native", "Asian", "Black or African-American", "White", "Other"], required: false }],
+        preamble: "<p> <strong>  DEMOGRAPHIC FORM </strong> </p>",
+        on_finish: function (data) {
+            var d = JSON.parse(data.responses);
+            data_demo.race.push(d.Q0);
+
+        }
+    };
+    var demo3 = {
+        type: 'survey-multi-choice',
+        questions: [{ prompt: "Gender: What best describes your gender?", options: ["Female", "Male", "Nonbinary/third gender", "Prefer not to say", "Other"], required: false },
+        { prompt: "Ethnicity: Do you consider yourself to be Hispanic or Latino?", options: ["Yes", "No"], required: false },
+        { prompt: "Health: How would you rate your overall health?", options: ["Much worse than average", "Somewhat worse than average", "Average", "Somewhat better than average", "Much better than average"], required: false }],
+        preamble: "<p> <strong>  DEMOGRAPHIC FORM </strong> </p>",
+        on_finish: function (data) {
+            var d = JSON.parse(data.responses);
+            data_demo.gender.push(d.Q0);
+            data_demo.ethnicity.push(d.Q1);
+            data_demo.health.push(d.Q2);
+        }
+    };
+
+    //save demographic data to server folder
+    function saveDemoData(name, data) {
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', 'exp_demo_writedata.php'); // 'write_data.php' is the path to the php file
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.send(JSON.stringify({ filename: name, filedata: data }));
+    }
+
+    function savethedemodata() {
+        //save cleaned data
+        saveDemoData(demofilename, data_demo);
+    }
+
+    var save_demo_data = {
+        type: 'call-function',
+        func: savethedemodata
+    }
+
+    var demo4 = {
+        type: 'survey-multi-select',
+        questions: [{ prompt: "This study will involve letters from non-engligh languages. Please indicate if you can fluently read letters from any of the following languages.", options: ["Latin", "Cyrillic", "Armenian", "Gregorian", "Burginese"], required: false }],
+    };
+
+    var demographics = {
+        timeline: [demo1, demo2, demo3, demo4, save_demo_data]
+    }
+    var VDACinstructions = {
+        type: 'instructions',
+        pages: ["Horizontal: " + jsPsych.pluginAPI.convertKeyCodeToKeyCharacter(keys[0]) + " Vertical: " + jsPsych.pluginAPI.convertKeyCodeToKeyCharacter(keys[1])],
+        show_clickable_nav: true,
+        show_page_number: true,
+        on_start: function () { document.body.style.cursor = 'auto' },
+        on_finish: function () { document.body.style.cursor = 'none' },
+    }
+    var VDACinstructionsold = {
+        type: 'instructions',
+        pages: ["<p>In the first of two tasks, you will see six differently colored circles with a line inside each of them. " +
+            "Your target will be a red or green circle and you will only see one of those target colors in each trial. " +
+            "Inside the target circle, the line will be positioned horizontally or vertically. All other lines will be positioned diagonally. " +
+            "Examples will be shown on the next two pages.</p>",
+        '<svg width="500" height="500" viewBox="0 0 100 100" >' +
+        '<circle cx="50" cy="50" r="10" fill="none" transform="translate( 26  15)" stroke="cyan" />' +
+        '<circle cx="50" cy="50" r="10" fill="none" transform="translate(  0  30)" stroke="gold" />' +
+        '<circle cx="50" cy="50" r="10" fill="none" transform="translate(-26  15)" stroke="blueviolet" />' +
+        '<circle cx="50" cy="50" r="10" fill="none" transform="translate(-26 -15)" stroke="red" />' +
+        '<circle cx="50" cy="50" r="10" fill="none" transform="translate(  0 -30)" stroke="magenta" />' +
+        '<circle cx="50" cy="50" r="10" fill="none" transform="translate( 26 -15)" stroke="black" />' +
+        '<path d="M 50 57 L 50 43" stroke="black" transform="translate( 26  15) rotate(45 50 50)"/>' +
+        '<path d="M 50 57 L 50 43" stroke="black" transform="translate(  0  30) rotate(45 50 50)"/>' +
+        '<path d="M 50 57 L 50 43" stroke="black" transform="translate(-26  15) rotate(-45 50 50)"/>' +
+        '<path d="M 50 57 L 50 43" stroke="black" transform="translate(-26 -15) rotate(90 50 50)"/>' +
+        '<path d="M 50 57 L 50 43" stroke="black" transform="translate(  0 -30) rotate(45 50 50)"/>' +
+        '<path d="M 50 57 L 50 43" stroke="black" transform="translate( 26 -15) rotate(-45 50 50)"/>' +
+        '<path d="M 50 52 L 50 48" stroke="black" stroke-width=".5"/> <path d="M 52 50 L 48 50" stroke="black" stroke-width=".5"/>' +
+        '</svg>'
+            ,
+        '<svg width="500" height="500" viewBox="0 0 100 100" >' +
+        '<circle cx="50" cy="50" r="10" fill="none" transform="translate( 26  15)" stroke="cyan" />' +
+        '<circle cx="50" cy="50" r="10" fill="none" transform="translate(  0  30)" stroke="blueviolet" />' +
+        '<circle cx="50" cy="50" r="10" fill="none" transform="translate(-26  15)" stroke="magenta" />' +
+        '<circle cx="50" cy="50" r="10" fill="none" transform="translate(-26 -15)" stroke="gold" />' +
+        '<circle cx="50" cy="50" r="10" fill="none" transform="translate(  0 -30)" stroke="black" />' +
+        '<circle cx="50" cy="50" r="10" fill="none" transform="translate( 26 -15)" stroke="green" />' +
+        '<path d="M 50 57 L 50 43" stroke="black" transform="translate( 26  15) rotate(-45 50 50)"/>' +
+        '<path d="M 50 57 L 50 43" stroke="black" transform="translate(  0  30) rotate(-45 50 50)"/>' +
+        '<path d="M 50 57 L 50 43" stroke="black" transform="translate(-26  15) rotate(45 50 50)"/>' +
+        '<path d="M 50 57 L 50 43" stroke="black" transform="translate(-26 -15) rotate(45 50 50)"/>' +
+        '<path d="M 50 57 L 50 43" stroke="black" transform="translate(  0 -30) rotate(-45 50 50)"/>' +
+        '<path d="M 50 57 L 50 43" stroke="black" transform="translate( 26 -15) rotate(0 50 50)"/>' +
+        '<path d="M 50 52 L 50 48" stroke="black" stroke-width=".5"/> <path d="M 52 50 L 48 50" stroke="black" stroke-width=".5"/>' +
+        '</svg>'
+            ,
+        'Your task will be to identify whether the line inside the target circle is oriented horizontally or vertically as quickly as possible. ' +
+        'Press "h" if the line is horizontal, or press "v" if the line is vertical. In the example below, you would press "h" if you see the shape on the left, or you would press "v" if you see the shape on the right.'
+            //'<svg width="500" height="500" viewBox="0 0 100 100" >' +
+            //'<circle cx="50" cy="50" r="10" fill="none" transform="translate( 26  0)" stroke="red" />' +
+            //'<circle cx="50" cy="50" r="10" fill="none" transform="translate(-26  0)" stroke="red" />' +
+            //'<path d="M 50 57 L 50 43" stroke="black" transform="translate( 26  0) rotate(0 50 50)"/>' +
+            //'<path d="M 50 57 L 50 43" stroke="black" transform="translate(-26  0) rotate(90 50 50)"/>'
+
+
+            , '<p>You may earn 10 points or 2 points for correct responses. Incorrect responses or failing to respond within the time limit will earn 0 points. ' +
+            'You will see how many points you have earned after each trial like shown below.</p>' +
+            '<span style="font-size:30px;color:black;"> + ' + 10 + ' points</span> <p></p> <span style="font-size:30px;color:black;"> Total: ' + 34 + ' points</span>' +
+            '<p>Try to earn as many points as you can. If you understand these instructions, click to proceed and you will be given 10 practice trials ' +
+        'with the option to review these instructions again before starting the experiment.</p>'
+        ],
+        show_clickable_nav: true,
+        show_page_number: true,
+        on_start: function () { document.body.style.cursor = 'auto' },
+        on_finish: function () { document.body.style.cursor = 'none' },
+    }
+    var fixation = {
+        type: 'html-keyboard-response',
+        stimulus: fixationStim,
+        choices: jsPsych.NO_KEYS,
+        trial_duration: Math.floor(Math.random() * 600) + 400,
+    }
+    var VDACtest = {
+        type: 'html-keyboard-response',
+        choices: [keys[0], keys[1]],
+        trial_duration: 1000,
+        stimulus: jsPsych.timelineVariable('stimulus'),
+        data: jsPsych.timelineVariable('data'),
+        on_finish: function (data) {
+            var correct = null;
+            if (data.orientation == 'horizontal' && data.key_press == keys[0] || data.orientation == 'vertical' && data.key_press == keys[1]) {
+                correct = true
+            } else if (data.orientation == 'horizontal' && data.key_press == keys[1] || data.orientation == 'vertical' && data.key_press == keys[0]) {
+                correct = false;
+            }
+            data.correct = correct;
+        },
+        post_trial_gap: 1000,
+    }
+
+    var feedbackCorrect = '<span style="font-size:30px;color:black;">Correct!</span>'
+    var feedbackWrong = '<span style="font-size:30px;color:black;">Incorrect</span> <p></p> <span style="font-size:30px;color:black;">Try Again</span>'
+    var feedbackTimeout = '<span style="font-size:30px;color:black;">Too Slow</span> <p></p> <span style="font-size:30px;color:black;">Try Again</span>'
+    var feedbackMiss = '<span style="font-size:30px;color:black;">Miss</span> <p>'
+
+    var trainingFeedback = {
+        type: 'html-keyboard-response',
+        stimulus: function () {
+            if (jsPsych.data.getLastTrialData().values()[0].correct == true) {
+                return feedbackCorrect
+            } else if (jsPsych.data.getLastTrialData().values()[0].correct == false) {
+                return feedbackWrong
+            } else if (jsPsych.data.getLastTrialData().values()[0].correct == null) {
+                return feedbackTimeout
+            }
+        },
+        choices: jsPsych.NO_KEYS,
+        trial_duration: 1500,
+        post_trial_gap: 1000,
+    }
+    var VDACexercise = {
+        timeline: [fixation, VDACtest, trainingFeedback],
+        timeline_variables: [
+            { stimulus: singletonStimTraining(2, 'red', 'h'), data: { color: 'red', tgtPosition: '2', orientation: 'horizontal' } },
+            { stimulus: singletonStimTraining(4, 'red', 'h'), data: { color: 'red', tgtPosition: '4', orientation: 'horizontal' } },
+            { stimulus: singletonStimTraining(1, 'red', 'v'), data: { color: 'red', tgtPosition: '1', orientation: 'vertical' } },
+            { stimulus: singletonStimTraining(3, 'red', 'v'), data: { color: 'red', tgtPosition: '3', orientation: 'vertical' } },
+            { stimulus: singletonStimTraining(5, 'red', 'v'), data: { color: 'red', tgtPosition: '5', orientation: 'vertical' } },
+            { stimulus: singletonStimTraining(1, 'green', 'h'), data: { color: 'green', tgtPosition: '1', orientation: 'horizontal' } },
+            { stimulus: singletonStimTraining(3, 'green', 'h'), data: { color: 'green', tgtPosition: '3', orientation: 'horizontal' } },
+            { stimulus: singletonStimTraining(5, 'green', 'h'), data: { color: 'green', tgtPosition: '5', orientation: 'horizontal' } },
+            { stimulus: singletonStimTraining(0, 'green', 'v'), data: { color: 'green', tgtPosition: '0', orientation: 'vertical' } },
+            { stimulus: singletonStimTraining(2, 'green', 'v'), data: { color: 'green', tgtPosition: '2', orientation: 'vertical' } },
+        ],
+        randomize_order: true,
+    }
+
+    var exerciseRepeat = {
+        type: 'html-keyboard-response',
+        stimulus: '<p>You have now finished the training excercise. If you would like to repeat the instructions and training exercise, press R to repeat this trial or press C if you would like to continue. </p>',
+        choices: ['r', 'c'],
+    }
+
+    var VDACtraining = {
+        timeline: [VDACinstructions, VDACexercise, exerciseRepeat],
+        loop_function: function (data) {
+            if (jsPsych.pluginAPI.convertKeyCharacterToKeyCode('r') == jsPsych.data.getLastTrialData().values()[0].key_press) {
+                return true;
+            } else {
+                return false;
+            }
+        },
+    }
+
+    var instructionsGap = {
+        type: "html-keyboard-response",
+        stimulus: "<p>Position your fingers on the Z and M keys. You will now continue the experiment momentarily</p>",
+        trial_duration: 3000,
+        post_trial_gap: 1000
+    }
+
+    var VDACfeedback = {
+        type: 'html-keyboard-response',
+        stimulus: function (data) {
+            var rewardTrial = 2
+            if (jsPsych.data.getLastTrialData().values()[0].correct == true && jsPsych.data.getLastTrialData().values()[0].rewardType == 'low') {
+                attentionCounter.push(0)
+                attentionCounter.shift()
+                if (Math.random() < .2) {
+                    rewardTrial = 10
+                }
+                rewardTotal = rewardTotal + rewardTrial
+                return '<span style="font-size:30px;color:black;"> + ' + rewardTrial + ' points</span> <p></p> <span style="font-size:30px;color:black;"> Total: ' + rewardTotal + ' points</span>'
+            } else if (jsPsych.data.getLastTrialData().values()[0].correct == true && jsPsych.data.getLastTrialData().values()[0].rewardType == 'high') {
+                attentionCounter.push(0)
+                attentionCounter.shift()
+                if (Math.random() < .8) {
+                    rewardTrial = 10
+                }
+                rewardTotal = rewardTotal + rewardTrial
+                return '<span style="font-size:30px;color:black;"> + ' + rewardTrial + ' points</span> <p></p> <span style="font-size:30px;color:black;"> Total: ' + rewardTotal + ' points</span>'
+            } else if (jsPsych.data.getLastTrialData().values()[0].correct == false) {
+                return '<span style="font-size:30px;">****</span>'
+            } else if (jsPsych.data.getLastTrialData().values()[0].correct == null) {
+                attentionCounter.push(1)
+                attentionCounter.shift()
+                return '<span style="font-size:30px;">****</span>'
+
+            }
+        },
+        on_finish: function (data) {
+            data.reward = rewardTotal
+            breakCounter++
+        },
+
+        choices: jsPsych.NO_KEYS,
+        trial_duration: 1500,
+        post_trial_gap: 1000,
+    }
+
+    var attentionCheck = {
+        timeline: [
+            {
+                type: "html-keyboard-response",
+                stimulus: "<p>You have failed to respond to 5 trials. Please press a key if you still partaking in the study.</p>",
+                choices: jsPsych.ALL_KEYS,
+                post_trial_gap: 1000,
+                on_finish: function () {
+                    attentionCounter = [0, 0, 0, 0, 0]
+                }
+            }
+        ],
+        conditional_function: function () {
+            if (attentionCounter.reduce((a, b) => a + b, 0) == 5) {
+                return true
+            } else {
+                return false
+            }
+        },
+    }
+    var breakCounter = 0
+    var restPeriod = {
+        timeline: [
+            {
+                type: "html-keyboard-response",
+                stimulus: "<p>You  may now take a 1 minute break. If you wish to contrinue with the experiment now, please press any key to start.</p>",
+                choices: jsPsych.ALL_KEYS,
+                trial_duration: 60000,
+            },
+            {
+                type: "html-keyboard-response",
+                stimulus: "<p>The experiment will now continue.</p>",
+                post_trial_gap: 1000,
+                trial_duration: 5000,
+            },
+        ],
+        conditional_function: function () {
+            if (breakCounter >= 5) {
+                return true
+            } else {
+                return false
+            }
+        },
+        on_finish: function () {
+            breakCounter = 0
+            attentionCounter = [0, 0, 0, 0, 0]
+
+        }
+    }
+    var VDACtaskGreen = {
+        timeline: [fixation, VDACtest, VDACfeedback, attentionCheck, restPeriod],
+        timeline_variables: [
+            { stimulus: singletonStim(0, 'green', 'h'), data: { color: 'green', tgtPosition: '0', rewardType: 'high', orientation: 'horizontal' } },
+            { stimulus: singletonStim(1, 'green', 'h'), data: { color: 'green', tgtPosition: '1', rewardType: 'high', orientation: 'horizontal' } },
+            { stimulus: singletonStim(2, 'green', 'h'), data: { color: 'green', tgtPosition: '2', rewardType: 'high', orientation: 'horizontal' } },
+            { stimulus: singletonStim(3, 'green', 'h'), data: { color: 'green', tgtPosition: '3', rewardType: 'high', orientation: 'horizontal' } },
+            { stimulus: singletonStim(4, 'green', 'h'), data: { color: 'green', tgtPosition: '4', rewardType: 'high', orientation: 'horizontal' } },
+            { stimulus: singletonStim(5, 'green', 'h'), data: { color: 'green', tgtPosition: '5', rewardType: 'high', orientation: 'horizontal' } },
+            { stimulus: singletonStim(0, 'green', 'v'), data: { color: 'green', tgtPosition: '0', rewardType: 'high', orientation: 'vertical' } },
+            { stimulus: singletonStim(1, 'green', 'v'), data: { color: 'green', tgtPosition: '1', rewardType: 'high', orientation: 'vertical' } },
+            { stimulus: singletonStim(2, 'green', 'v'), data: { color: 'green', tgtPosition: '2', rewardType: 'high', orientation: 'vertical' } },
+            { stimulus: singletonStim(3, 'green', 'v'), data: { color: 'green', tgtPosition: '3', rewardType: 'high', orientation: 'vertical' } },
+            { stimulus: singletonStim(4, 'green', 'v'), data: { color: 'green', tgtPosition: '4', rewardType: 'high', orientation: 'vertical' } },
+            { stimulus: singletonStim(5, 'green', 'v'), data: { color: 'green', tgtPosition: '5', rewardType: 'high', orientation: 'vertical' } },
+            { stimulus: singletonStim(0, 'red', 'h'), data: { color: 'red', tgtPosition: '0', rewardType: 'low', orientation: 'horizontal' } },
+            { stimulus: singletonStim(1, 'red', 'h'), data: { color: 'red', tgtPosition: '1', rewardType: 'low', orientation: 'horizontal' } },
+            { stimulus: singletonStim(2, 'red', 'h'), data: { color: 'red', tgtPosition: '2', rewardType: 'low', orientation: 'horizontal' } },
+            { stimulus: singletonStim(3, 'red', 'h'), data: { color: 'red', tgtPosition: '3', rewardType: 'low', orientation: 'horizontal' } },
+            { stimulus: singletonStim(4, 'red', 'h'), data: { color: 'red', tgtPosition: '4', rewardType: 'low', orientation: 'horizontal' } },
+            { stimulus: singletonStim(5, 'red', 'h'), data: { color: 'red', tgtPosition: '5', rewardType: 'low', orientation: 'horizontal' } },
+            { stimulus: singletonStim(0, 'red', 'v'), data: { color: 'red', tgtPosition: '0', rewardType: 'low', orientation: 'vertical' } },
+            { stimulus: singletonStim(1, 'red', 'v'), data: { color: 'red', tgtPosition: '1', rewardType: 'low', orientation: 'vertical' } },
+            { stimulus: singletonStim(2, 'red', 'v'), data: { color: 'red', tgtPosition: '2', rewardType: 'low', orientation: 'vertical' } },
+            { stimulus: singletonStim(3, 'red', 'v'), data: { color: 'red', tgtPosition: '3', rewardType: 'low', orientation: 'vertical' } },
+            { stimulus: singletonStim(4, 'red', 'v'), data: { color: 'red', tgtPosition: '4', rewardType: 'low', orientation: 'vertical' } },
+            { stimulus: singletonStim(5, 'red', 'v'), data: { color: 'red', tgtPosition: '5', rewardType: 'low', orientation: 'vertical' } },
+
+            { stimulus: singletonStim(0, 'green', 'h'), data: { color: 'green', tgtPosition: '0', rewardType: 'high', orientation: 'horizontal' } },
+            { stimulus: singletonStim(1, 'green', 'h'), data: { color: 'green', tgtPosition: '1', rewardType: 'high', orientation: 'horizontal' } },
+            { stimulus: singletonStim(2, 'green', 'h'), data: { color: 'green', tgtPosition: '2', rewardType: 'high', orientation: 'horizontal' } },
+            { stimulus: singletonStim(3, 'green', 'h'), data: { color: 'green', tgtPosition: '3', rewardType: 'high', orientation: 'horizontal' } },
+            { stimulus: singletonStim(4, 'green', 'h'), data: { color: 'green', tgtPosition: '4', rewardType: 'high', orientation: 'horizontal' } },
+            { stimulus: singletonStim(5, 'green', 'h'), data: { color: 'green', tgtPosition: '5', rewardType: 'high', orientation: 'horizontal' } },
+            { stimulus: singletonStim(0, 'green', 'v'), data: { color: 'green', tgtPosition: '0', rewardType: 'high', orientation: 'vertical' } },
+            { stimulus: singletonStim(1, 'green', 'v'), data: { color: 'green', tgtPosition: '1', rewardType: 'high', orientation: 'vertical' } },
+            { stimulus: singletonStim(2, 'green', 'v'), data: { color: 'green', tgtPosition: '2', rewardType: 'high', orientation: 'vertical' } },
+            { stimulus: singletonStim(3, 'green', 'v'), data: { color: 'green', tgtPosition: '3', rewardType: 'high', orientation: 'vertical' } },
+            { stimulus: singletonStim(4, 'green', 'v'), data: { color: 'green', tgtPosition: '4', rewardType: 'high', orientation: 'vertical' } },
+            { stimulus: singletonStim(5, 'green', 'v'), data: { color: 'green', tgtPosition: '5', rewardType: 'high', orientation: 'vertical' } },
+            { stimulus: singletonStim(0, 'red', 'h'), data: { color: 'red', tgtPosition: '0', rewardType: 'low', orientation: 'horizontal' } },
+            { stimulus: singletonStim(1, 'red', 'h'), data: { color: 'red', tgtPosition: '1', rewardType: 'low', orientation: 'horizontal' } },
+            { stimulus: singletonStim(2, 'red', 'h'), data: { color: 'red', tgtPosition: '2', rewardType: 'low', orientation: 'horizontal' } },
+            { stimulus: singletonStim(3, 'red', 'h'), data: { color: 'red', tgtPosition: '3', rewardType: 'low', orientation: 'horizontal' } },
+            { stimulus: singletonStim(4, 'red', 'h'), data: { color: 'red', tgtPosition: '4', rewardType: 'low', orientation: 'horizontal' } },
+            { stimulus: singletonStim(5, 'red', 'h'), data: { color: 'red', tgtPosition: '5', rewardType: 'low', orientation: 'horizontal' } },
+            { stimulus: singletonStim(0, 'red', 'v'), data: { color: 'red', tgtPosition: '0', rewardType: 'low', orientation: 'vertical' } },
+            { stimulus: singletonStim(1, 'red', 'v'), data: { color: 'red', tgtPosition: '1', rewardType: 'low', orientation: 'vertical' } },
+            { stimulus: singletonStim(2, 'red', 'v'), data: { color: 'red', tgtPosition: '2', rewardType: 'low', orientation: 'vertical' } },
+            { stimulus: singletonStim(3, 'red', 'v'), data: { color: 'red', tgtPosition: '3', rewardType: 'low', orientation: 'vertical' } },
+            { stimulus: singletonStim(4, 'red', 'v'), data: { color: 'red', tgtPosition: '4', rewardType: 'low', orientation: 'vertical' } },
+            { stimulus: singletonStim(5, 'red', 'v'), data: { color: 'red', tgtPosition: '5', rewardType: 'low', orientation: 'vertical' } },
+
+            { stimulus: singletonStim(0, 'green', 'h'), data: { color: 'green', tgtPosition: '0', rewardType: 'high', orientation: 'horizontal' } },
+            { stimulus: singletonStim(1, 'green', 'h'), data: { color: 'green', tgtPosition: '1', rewardType: 'high', orientation: 'horizontal' } },
+            { stimulus: singletonStim(2, 'green', 'h'), data: { color: 'green', tgtPosition: '2', rewardType: 'high', orientation: 'horizontal' } },
+            { stimulus: singletonStim(3, 'green', 'h'), data: { color: 'green', tgtPosition: '3', rewardType: 'high', orientation: 'horizontal' } },
+            { stimulus: singletonStim(4, 'green', 'h'), data: { color: 'green', tgtPosition: '4', rewardType: 'high', orientation: 'horizontal' } },
+            { stimulus: singletonStim(5, 'green', 'h'), data: { color: 'green', tgtPosition: '5', rewardType: 'high', orientation: 'horizontal' } },
+            { stimulus: singletonStim(0, 'green', 'v'), data: { color: 'green', tgtPosition: '0', rewardType: 'high', orientation: 'vertical' } },
+            { stimulus: singletonStim(1, 'green', 'v'), data: { color: 'green', tgtPosition: '1', rewardType: 'high', orientation: 'vertical' } },
+            { stimulus: singletonStim(2, 'green', 'v'), data: { color: 'green', tgtPosition: '2', rewardType: 'high', orientation: 'vertical' } },
+            { stimulus: singletonStim(3, 'green', 'v'), data: { color: 'green', tgtPosition: '3', rewardType: 'high', orientation: 'vertical' } },
+            { stimulus: singletonStim(4, 'green', 'v'), data: { color: 'green', tgtPosition: '4', rewardType: 'high', orientation: 'vertical' } },
+            { stimulus: singletonStim(5, 'green', 'v'), data: { color: 'green', tgtPosition: '5', rewardType: 'high', orientation: 'vertical' } },
+            { stimulus: singletonStim(0, 'red', 'h'), data: { color: 'red', tgtPosition: '0', rewardType: 'low', orientation: 'horizontal' } },
+            { stimulus: singletonStim(1, 'red', 'h'), data: { color: 'red', tgtPosition: '1', rewardType: 'low', orientation: 'horizontal' } },
+            { stimulus: singletonStim(2, 'red', 'h'), data: { color: 'red', tgtPosition: '2', rewardType: 'low', orientation: 'horizontal' } },
+            { stimulus: singletonStim(3, 'red', 'h'), data: { color: 'red', tgtPosition: '3', rewardType: 'low', orientation: 'horizontal' } },
+            { stimulus: singletonStim(4, 'red', 'h'), data: { color: 'red', tgtPosition: '4', rewardType: 'low', orientation: 'horizontal' } },
+            { stimulus: singletonStim(5, 'red', 'h'), data: { color: 'red', tgtPosition: '5', rewardType: 'low', orientation: 'horizontal' } },
+            { stimulus: singletonStim(0, 'red', 'v'), data: { color: 'red', tgtPosition: '0', rewardType: 'low', orientation: 'vertical' } },
+            { stimulus: singletonStim(1, 'red', 'v'), data: { color: 'red', tgtPosition: '1', rewardType: 'low', orientation: 'vertical' } },
+            { stimulus: singletonStim(2, 'red', 'v'), data: { color: 'red', tgtPosition: '2', rewardType: 'low', orientation: 'vertical' } },
+            { stimulus: singletonStim(3, 'red', 'v'), data: { color: 'red', tgtPosition: '3', rewardType: 'low', orientation: 'vertical' } },
+            { stimulus: singletonStim(4, 'red', 'v'), data: { color: 'red', tgtPosition: '4', rewardType: 'low', orientation: 'vertical' } },
+            { stimulus: singletonStim(5, 'red', 'v'), data: { color: 'red', tgtPosition: '5', rewardType: 'low', orientation: 'vertical' } },
+
+            { stimulus: singletonStim(0, 'green', 'h'), data: { color: 'green', tgtPosition: '0', rewardType: 'high', orientation: 'horizontal' } },
+            { stimulus: singletonStim(1, 'green', 'h'), data: { color: 'green', tgtPosition: '1', rewardType: 'high', orientation: 'horizontal' } },
+            { stimulus: singletonStim(2, 'green', 'h'), data: { color: 'green', tgtPosition: '2', rewardType: 'high', orientation: 'horizontal' } },
+            { stimulus: singletonStim(3, 'green', 'h'), data: { color: 'green', tgtPosition: '3', rewardType: 'high', orientation: 'horizontal' } },
+            { stimulus: singletonStim(4, 'green', 'h'), data: { color: 'green', tgtPosition: '4', rewardType: 'high', orientation: 'horizontal' } },
+            { stimulus: singletonStim(5, 'green', 'h'), data: { color: 'green', tgtPosition: '5', rewardType: 'high', orientation: 'horizontal' } },
+            { stimulus: singletonStim(0, 'green', 'v'), data: { color: 'green', tgtPosition: '0', rewardType: 'high', orientation: 'vertical' } },
+            { stimulus: singletonStim(1, 'green', 'v'), data: { color: 'green', tgtPosition: '1', rewardType: 'high', orientation: 'vertical' } },
+            { stimulus: singletonStim(2, 'green', 'v'), data: { color: 'green', tgtPosition: '2', rewardType: 'high', orientation: 'vertical' } },
+            { stimulus: singletonStim(3, 'green', 'v'), data: { color: 'green', tgtPosition: '3', rewardType: 'high', orientation: 'vertical' } },
+            { stimulus: singletonStim(4, 'green', 'v'), data: { color: 'green', tgtPosition: '4', rewardType: 'high', orientation: 'vertical' } },
+            { stimulus: singletonStim(5, 'green', 'v'), data: { color: 'green', tgtPosition: '5', rewardType: 'high', orientation: 'vertical' } },
+            { stimulus: singletonStim(0, 'red', 'h'), data: { color: 'red', tgtPosition: '0', rewardType: 'low', orientation: 'horizontal' } },
+            { stimulus: singletonStim(1, 'red', 'h'), data: { color: 'red', tgtPosition: '1', rewardType: 'low', orientation: 'horizontal' } },
+            { stimulus: singletonStim(2, 'red', 'h'), data: { color: 'red', tgtPosition: '2', rewardType: 'low', orientation: 'horizontal' } },
+            { stimulus: singletonStim(3, 'red', 'h'), data: { color: 'red', tgtPosition: '3', rewardType: 'low', orientation: 'horizontal' } },
+            { stimulus: singletonStim(4, 'red', 'h'), data: { color: 'red', tgtPosition: '4', rewardType: 'low', orientation: 'horizontal' } },
+            { stimulus: singletonStim(5, 'red', 'h'), data: { color: 'red', tgtPosition: '5', rewardType: 'low', orientation: 'horizontal' } },
+            { stimulus: singletonStim(0, 'red', 'v'), data: { color: 'red', tgtPosition: '0', rewardType: 'low', orientation: 'vertical' } },
+            { stimulus: singletonStim(1, 'red', 'v'), data: { color: 'red', tgtPosition: '1', rewardType: 'low', orientation: 'vertical' } },
+            { stimulus: singletonStim(2, 'red', 'v'), data: { color: 'red', tgtPosition: '2', rewardType: 'low', orientation: 'vertical' } },
+            { stimulus: singletonStim(3, 'red', 'v'), data: { color: 'red', tgtPosition: '3', rewardType: 'low', orientation: 'vertical' } },
+            { stimulus: singletonStim(4, 'red', 'v'), data: { color: 'red', tgtPosition: '4', rewardType: 'low', orientation: 'vertical' } },
+            { stimulus: singletonStim(5, 'red', 'v'), data: { color: 'red', tgtPosition: '5', rewardType: 'low', orientation: 'vertical' } },
+
+            { stimulus: singletonStim(0, 'green', 'h'), data: { color: 'green', tgtPosition: '0', rewardType: 'high', orientation: 'horizontal' } },
+            { stimulus: singletonStim(1, 'green', 'h'), data: { color: 'green', tgtPosition: '1', rewardType: 'high', orientation: 'horizontal' } },
+            { stimulus: singletonStim(2, 'green', 'h'), data: { color: 'green', tgtPosition: '2', rewardType: 'high', orientation: 'horizontal' } },
+            { stimulus: singletonStim(3, 'green', 'h'), data: { color: 'green', tgtPosition: '3', rewardType: 'high', orientation: 'horizontal' } },
+            { stimulus: singletonStim(4, 'green', 'h'), data: { color: 'green', tgtPosition: '4', rewardType: 'high', orientation: 'horizontal' } },
+            { stimulus: singletonStim(5, 'green', 'h'), data: { color: 'green', tgtPosition: '5', rewardType: 'high', orientation: 'horizontal' } },
+            { stimulus: singletonStim(0, 'green', 'v'), data: { color: 'green', tgtPosition: '0', rewardType: 'high', orientation: 'vertical' } },
+            { stimulus: singletonStim(1, 'green', 'v'), data: { color: 'green', tgtPosition: '1', rewardType: 'high', orientation: 'vertical' } },
+            { stimulus: singletonStim(2, 'green', 'v'), data: { color: 'green', tgtPosition: '2', rewardType: 'high', orientation: 'vertical' } },
+            { stimulus: singletonStim(3, 'green', 'v'), data: { color: 'green', tgtPosition: '3', rewardType: 'high', orientation: 'vertical' } },
+            { stimulus: singletonStim(4, 'green', 'v'), data: { color: 'green', tgtPosition: '4', rewardType: 'high', orientation: 'vertical' } },
+            { stimulus: singletonStim(5, 'green', 'v'), data: { color: 'green', tgtPosition: '5', rewardType: 'high', orientation: 'vertical' } },
+            { stimulus: singletonStim(0, 'red', 'h'), data: { color: 'red', tgtPosition: '0', rewardType: 'low', orientation: 'horizontal' } },
+            { stimulus: singletonStim(1, 'red', 'h'), data: { color: 'red', tgtPosition: '1', rewardType: 'low', orientation: 'horizontal' } },
+            { stimulus: singletonStim(2, 'red', 'h'), data: { color: 'red', tgtPosition: '2', rewardType: 'low', orientation: 'horizontal' } },
+            { stimulus: singletonStim(3, 'red', 'h'), data: { color: 'red', tgtPosition: '3', rewardType: 'low', orientation: 'horizontal' } },
+            { stimulus: singletonStim(4, 'red', 'h'), data: { color: 'red', tgtPosition: '4', rewardType: 'low', orientation: 'horizontal' } },
+            { stimulus: singletonStim(5, 'red', 'h'), data: { color: 'red', tgtPosition: '5', rewardType: 'low', orientation: 'horizontal' } },
+            { stimulus: singletonStim(0, 'red', 'v'), data: { color: 'red', tgtPosition: '0', rewardType: 'low', orientation: 'vertical' } },
+            { stimulus: singletonStim(1, 'red', 'v'), data: { color: 'red', tgtPosition: '1', rewardType: 'low', orientation: 'vertical' } },
+            { stimulus: singletonStim(2, 'red', 'v'), data: { color: 'red', tgtPosition: '2', rewardType: 'low', orientation: 'vertical' } },
+            { stimulus: singletonStim(3, 'red', 'v'), data: { color: 'red', tgtPosition: '3', rewardType: 'low', orientation: 'vertical' } },
+            { stimulus: singletonStim(4, 'red', 'v'), data: { color: 'red', tgtPosition: '4', rewardType: 'low', orientation: 'vertical' } },
+            { stimulus: singletonStim(5, 'red', 'v'), data: { color: 'red', tgtPosition: '5', rewardType: 'low', orientation: 'vertical' } },
+
+            { stimulus: singletonStim(0, 'green', 'h'), data: { color: 'green', tgtPosition: '0', rewardType: 'high', orientation: 'horizontal' } },
+            { stimulus: singletonStim(1, 'green', 'h'), data: { color: 'green', tgtPosition: '1', rewardType: 'high', orientation: 'horizontal' } },
+            { stimulus: singletonStim(2, 'green', 'h'), data: { color: 'green', tgtPosition: '2', rewardType: 'high', orientation: 'horizontal' } },
+            { stimulus: singletonStim(3, 'green', 'h'), data: { color: 'green', tgtPosition: '3', rewardType: 'high', orientation: 'horizontal' } },
+            { stimulus: singletonStim(4, 'green', 'h'), data: { color: 'green', tgtPosition: '4', rewardType: 'high', orientation: 'horizontal' } },
+            { stimulus: singletonStim(5, 'green', 'h'), data: { color: 'green', tgtPosition: '5', rewardType: 'high', orientation: 'horizontal' } },
+            { stimulus: singletonStim(0, 'green', 'v'), data: { color: 'green', tgtPosition: '0', rewardType: 'high', orientation: 'vertical' } },
+            { stimulus: singletonStim(1, 'green', 'v'), data: { color: 'green', tgtPosition: '1', rewardType: 'high', orientation: 'vertical' } },
+            { stimulus: singletonStim(2, 'green', 'v'), data: { color: 'green', tgtPosition: '2', rewardType: 'high', orientation: 'vertical' } },
+            { stimulus: singletonStim(3, 'green', 'v'), data: { color: 'green', tgtPosition: '3', rewardType: 'high', orientation: 'vertical' } },
+            { stimulus: singletonStim(4, 'green', 'v'), data: { color: 'green', tgtPosition: '4', rewardType: 'high', orientation: 'vertical' } },
+            { stimulus: singletonStim(5, 'green', 'v'), data: { color: 'green', tgtPosition: '5', rewardType: 'high', orientation: 'vertical' } },
+            { stimulus: singletonStim(0, 'red', 'h'), data: { color: 'red', tgtPosition: '0', rewardType: 'low', orientation: 'horizontal' } },
+            { stimulus: singletonStim(1, 'red', 'h'), data: { color: 'red', tgtPosition: '1', rewardType: 'low', orientation: 'horizontal' } },
+            { stimulus: singletonStim(2, 'red', 'h'), data: { color: 'red', tgtPosition: '2', rewardType: 'low', orientation: 'horizontal' } },
+            { stimulus: singletonStim(3, 'red', 'h'), data: { color: 'red', tgtPosition: '3', rewardType: 'low', orientation: 'horizontal' } },
+            { stimulus: singletonStim(4, 'red', 'h'), data: { color: 'red', tgtPosition: '4', rewardType: 'low', orientation: 'horizontal' } },
+            { stimulus: singletonStim(5, 'red', 'h'), data: { color: 'red', tgtPosition: '5', rewardType: 'low', orientation: 'horizontal' } },
+            { stimulus: singletonStim(0, 'red', 'v'), data: { color: 'red', tgtPosition: '0', rewardType: 'low', orientation: 'vertical' } },
+            { stimulus: singletonStim(1, 'red', 'v'), data: { color: 'red', tgtPosition: '1', rewardType: 'low', orientation: 'vertical' } },
+            { stimulus: singletonStim(2, 'red', 'v'), data: { color: 'red', tgtPosition: '2', rewardType: 'low', orientation: 'vertical' } },
+            { stimulus: singletonStim(3, 'red', 'v'), data: { color: 'red', tgtPosition: '3', rewardType: 'low', orientation: 'vertical' } },
+            { stimulus: singletonStim(4, 'red', 'v'), data: { color: 'red', tgtPosition: '4', rewardType: 'low', orientation: 'vertical' } },
+            { stimulus: singletonStim(5, 'red', 'v'), data: { color: 'red', tgtPosition: '5', rewardType: 'low', orientation: 'vertical' } },
+        ],
+        randomize_order: true,
+        sample: {
+            type: 'without-replacement',
+            size: 10,
+        },
+        conditional_function: function () {
+            if (conditionColor[0] == 'green') {
+                return true
+            } else {
+                return false
+            }
+        }
+    }
+    var VDACtaskRed = {
+        timeline: [fixation, VDACtest, VDACfeedback, attentionCheck, restPeriod],
+        timeline_variables: [
+            { stimulus: singletonStim(0, 'red', 'h'), data: { color: 'red', tgtPosition: '0', rewardType: 'high', orientation: 'horizontal' } },
+            { stimulus: singletonStim(1, 'red', 'h'), data: { color: 'red', tgtPosition: '1', rewardType: 'high', orientation: 'horizontal' } },
+            { stimulus: singletonStim(2, 'red', 'h'), data: { color: 'red', tgtPosition: '2', rewardType: 'high', orientation: 'horizontal' } },
+            { stimulus: singletonStim(3, 'red', 'h'), data: { color: 'red', tgtPosition: '3', rewardType: 'high', orientation: 'horizontal' } },
+            { stimulus: singletonStim(4, 'red', 'h'), data: { color: 'red', tgtPosition: '4', rewardType: 'high', orientation: 'horizontal' } },
+            { stimulus: singletonStim(5, 'red', 'h'), data: { color: 'red', tgtPosition: '5', rewardType: 'high', orientation: 'horizontal' } },
+            { stimulus: singletonStim(0, 'red', 'v'), data: { color: 'red', tgtPosition: '0', rewardType: 'high', orientation: 'vertical' } },
+            { stimulus: singletonStim(1, 'red', 'v'), data: { color: 'red', tgtPosition: '1', rewardType: 'high', orientation: 'vertical' } },
+            { stimulus: singletonStim(2, 'red', 'v'), data: { color: 'red', tgtPosition: '2', rewardType: 'high', orientation: 'vertical' } },
+            { stimulus: singletonStim(3, 'red', 'v'), data: { color: 'red', tgtPosition: '3', rewardType: 'high', orientation: 'vertical' } },
+            { stimulus: singletonStim(4, 'red', 'v'), data: { color: 'red', tgtPosition: '4', rewardType: 'high', orientation: 'vertical' } },
+            { stimulus: singletonStim(5, 'red', 'v'), data: { color: 'red', tgtPosition: '5', rewardType: 'high', orientation: 'vertical' } },
+            { stimulus: singletonStim(0, 'green', 'h'), data: { color: 'green', tgtPosition: '0', rewardType: 'low', orientation: 'horizontal' } },
+            { stimulus: singletonStim(1, 'green', 'h'), data: { color: 'green', tgtPosition: '1', rewardType: 'low', orientation: 'horizontal' } },
+            { stimulus: singletonStim(2, 'green', 'h'), data: { color: 'green', tgtPosition: '2', rewardType: 'low', orientation: 'horizontal' } },
+            { stimulus: singletonStim(3, 'green', 'h'), data: { color: 'green', tgtPosition: '3', rewardType: 'low', orientation: 'horizontal' } },
+            { stimulus: singletonStim(4, 'green', 'h'), data: { color: 'green', tgtPosition: '4', rewardType: 'low', orientation: 'horizontal' } },
+            { stimulus: singletonStim(5, 'green', 'h'), data: { color: 'green', tgtPosition: '5', rewardType: 'low', orientation: 'horizontal' } },
+            { stimulus: singletonStim(0, 'green', 'v'), data: { color: 'green', tgtPosition: '0', rewardType: 'low', orientation: 'vertical' } },
+            { stimulus: singletonStim(1, 'green', 'v'), data: { color: 'green', tgtPosition: '1', rewardType: 'low', orientation: 'vertical' } },
+            { stimulus: singletonStim(2, 'green', 'v'), data: { color: 'green', tgtPosition: '2', rewardType: 'low', orientation: 'vertical' } },
+            { stimulus: singletonStim(3, 'green', 'v'), data: { color: 'green', tgtPosition: '3', rewardType: 'low', orientation: 'vertical' } },
+            { stimulus: singletonStim(4, 'green', 'v'), data: { color: 'green', tgtPosition: '4', rewardType: 'low', orientation: 'vertical' } },
+            { stimulus: singletonStim(5, 'green', 'v'), data: { color: 'green', tgtPosition: '5', rewardType: 'low', orientation: 'vertical' } },
+
+            { stimulus: singletonStim(0, 'red', 'h'), data: { color: 'red', tgtPosition: '0', rewardType: 'high', orientation: 'horizontal' } },
+            { stimulus: singletonStim(1, 'red', 'h'), data: { color: 'red', tgtPosition: '1', rewardType: 'high', orientation: 'horizontal' } },
+            { stimulus: singletonStim(2, 'red', 'h'), data: { color: 'red', tgtPosition: '2', rewardType: 'high', orientation: 'horizontal' } },
+            { stimulus: singletonStim(3, 'red', 'h'), data: { color: 'red', tgtPosition: '3', rewardType: 'high', orientation: 'horizontal' } },
+            { stimulus: singletonStim(4, 'red', 'h'), data: { color: 'red', tgtPosition: '4', rewardType: 'high', orientation: 'horizontal' } },
+            { stimulus: singletonStim(5, 'red', 'h'), data: { color: 'red', tgtPosition: '5', rewardType: 'high', orientation: 'horizontal' } },
+            { stimulus: singletonStim(0, 'red', 'v'), data: { color: 'red', tgtPosition: '0', rewardType: 'high', orientation: 'vertical' } },
+            { stimulus: singletonStim(1, 'red', 'v'), data: { color: 'red', tgtPosition: '1', rewardType: 'high', orientation: 'vertical' } },
+            { stimulus: singletonStim(2, 'red', 'v'), data: { color: 'red', tgtPosition: '2', rewardType: 'high', orientation: 'vertical' } },
+            { stimulus: singletonStim(3, 'red', 'v'), data: { color: 'red', tgtPosition: '3', rewardType: 'high', orientation: 'vertical' } },
+            { stimulus: singletonStim(4, 'red', 'v'), data: { color: 'red', tgtPosition: '4', rewardType: 'high', orientation: 'vertical' } },
+            { stimulus: singletonStim(5, 'red', 'v'), data: { color: 'red', tgtPosition: '5', rewardType: 'high', orientation: 'vertical' } },
+            { stimulus: singletonStim(0, 'green', 'h'), data: { color: 'green', tgtPosition: '0', rewardType: 'low', orientation: 'horizontal' } },
+            { stimulus: singletonStim(1, 'green', 'h'), data: { color: 'green', tgtPosition: '1', rewardType: 'low', orientation: 'horizontal' } },
+            { stimulus: singletonStim(2, 'green', 'h'), data: { color: 'green', tgtPosition: '2', rewardType: 'low', orientation: 'horizontal' } },
+            { stimulus: singletonStim(3, 'green', 'h'), data: { color: 'green', tgtPosition: '3', rewardType: 'low', orientation: 'horizontal' } },
+            { stimulus: singletonStim(4, 'green', 'h'), data: { color: 'green', tgtPosition: '4', rewardType: 'low', orientation: 'horizontal' } },
+            { stimulus: singletonStim(5, 'green', 'h'), data: { color: 'green', tgtPosition: '5', rewardType: 'low', orientation: 'horizontal' } },
+            { stimulus: singletonStim(0, 'green', 'v'), data: { color: 'green', tgtPosition: '0', rewardType: 'low', orientation: 'vertical' } },
+            { stimulus: singletonStim(1, 'green', 'v'), data: { color: 'green', tgtPosition: '1', rewardType: 'low', orientation: 'vertical' } },
+            { stimulus: singletonStim(2, 'green', 'v'), data: { color: 'green', tgtPosition: '2', rewardType: 'low', orientation: 'vertical' } },
+            { stimulus: singletonStim(3, 'green', 'v'), data: { color: 'green', tgtPosition: '3', rewardType: 'low', orientation: 'vertical' } },
+            { stimulus: singletonStim(4, 'green', 'v'), data: { color: 'green', tgtPosition: '4', rewardType: 'low', orientation: 'vertical' } },
+            { stimulus: singletonStim(5, 'green', 'v'), data: { color: 'green', tgtPosition: '5', rewardType: 'low', orientation: 'vertical' } },
+
+            { stimulus: singletonStim(0, 'red', 'h'), data: { color: 'red', tgtPosition: '0', rewardType: 'high', orientation: 'horizontal' } },
+            { stimulus: singletonStim(1, 'red', 'h'), data: { color: 'red', tgtPosition: '1', rewardType: 'high', orientation: 'horizontal' } },
+            { stimulus: singletonStim(2, 'red', 'h'), data: { color: 'red', tgtPosition: '2', rewardType: 'high', orientation: 'horizontal' } },
+            { stimulus: singletonStim(3, 'red', 'h'), data: { color: 'red', tgtPosition: '3', rewardType: 'high', orientation: 'horizontal' } },
+            { stimulus: singletonStim(4, 'red', 'h'), data: { color: 'red', tgtPosition: '4', rewardType: 'high', orientation: 'horizontal' } },
+            { stimulus: singletonStim(5, 'red', 'h'), data: { color: 'red', tgtPosition: '5', rewardType: 'high', orientation: 'horizontal' } },
+            { stimulus: singletonStim(0, 'red', 'v'), data: { color: 'red', tgtPosition: '0', rewardType: 'high', orientation: 'vertical' } },
+            { stimulus: singletonStim(1, 'red', 'v'), data: { color: 'red', tgtPosition: '1', rewardType: 'high', orientation: 'vertical' } },
+            { stimulus: singletonStim(2, 'red', 'v'), data: { color: 'red', tgtPosition: '2', rewardType: 'high', orientation: 'vertical' } },
+            { stimulus: singletonStim(3, 'red', 'v'), data: { color: 'red', tgtPosition: '3', rewardType: 'high', orientation: 'vertical' } },
+            { stimulus: singletonStim(4, 'red', 'v'), data: { color: 'red', tgtPosition: '4', rewardType: 'high', orientation: 'vertical' } },
+            { stimulus: singletonStim(5, 'red', 'v'), data: { color: 'red', tgtPosition: '5', rewardType: 'high', orientation: 'vertical' } },
+            { stimulus: singletonStim(0, 'green', 'h'), data: { color: 'green', tgtPosition: '0', rewardType: 'low', orientation: 'horizontal' } },
+            { stimulus: singletonStim(1, 'green', 'h'), data: { color: 'green', tgtPosition: '1', rewardType: 'low', orientation: 'horizontal' } },
+            { stimulus: singletonStim(2, 'green', 'h'), data: { color: 'green', tgtPosition: '2', rewardType: 'low', orientation: 'horizontal' } },
+            { stimulus: singletonStim(3, 'green', 'h'), data: { color: 'green', tgtPosition: '3', rewardType: 'low', orientation: 'horizontal' } },
+            { stimulus: singletonStim(4, 'green', 'h'), data: { color: 'green', tgtPosition: '4', rewardType: 'low', orientation: 'horizontal' } },
+            { stimulus: singletonStim(5, 'green', 'h'), data: { color: 'green', tgtPosition: '5', rewardType: 'low', orientation: 'horizontal' } },
+            { stimulus: singletonStim(0, 'green', 'v'), data: { color: 'green', tgtPosition: '0', rewardType: 'low', orientation: 'vertical' } },
+            { stimulus: singletonStim(1, 'green', 'v'), data: { color: 'green', tgtPosition: '1', rewardType: 'low', orientation: 'vertical' } },
+            { stimulus: singletonStim(2, 'green', 'v'), data: { color: 'green', tgtPosition: '2', rewardType: 'low', orientation: 'vertical' } },
+            { stimulus: singletonStim(3, 'green', 'v'), data: { color: 'green', tgtPosition: '3', rewardType: 'low', orientation: 'vertical' } },
+            { stimulus: singletonStim(4, 'green', 'v'), data: { color: 'green', tgtPosition: '4', rewardType: 'low', orientation: 'vertical' } },
+            { stimulus: singletonStim(5, 'green', 'v'), data: { color: 'green', tgtPosition: '5', rewardType: 'low', orientation: 'vertical' } },
+
+            { stimulus: singletonStim(0, 'red', 'h'), data: { color: 'red', tgtPosition: '0', rewardType: 'high', orientation: 'horizontal' } },
+            { stimulus: singletonStim(1, 'red', 'h'), data: { color: 'red', tgtPosition: '1', rewardType: 'high', orientation: 'horizontal' } },
+            { stimulus: singletonStim(2, 'red', 'h'), data: { color: 'red', tgtPosition: '2', rewardType: 'high', orientation: 'horizontal' } },
+            { stimulus: singletonStim(3, 'red', 'h'), data: { color: 'red', tgtPosition: '3', rewardType: 'high', orientation: 'horizontal' } },
+            { stimulus: singletonStim(4, 'red', 'h'), data: { color: 'red', tgtPosition: '4', rewardType: 'high', orientation: 'horizontal' } },
+            { stimulus: singletonStim(5, 'red', 'h'), data: { color: 'red', tgtPosition: '5', rewardType: 'high', orientation: 'horizontal' } },
+            { stimulus: singletonStim(0, 'red', 'v'), data: { color: 'red', tgtPosition: '0', rewardType: 'high', orientation: 'vertical' } },
+            { stimulus: singletonStim(1, 'red', 'v'), data: { color: 'red', tgtPosition: '1', rewardType: 'high', orientation: 'vertical' } },
+            { stimulus: singletonStim(2, 'red', 'v'), data: { color: 'red', tgtPosition: '2', rewardType: 'high', orientation: 'vertical' } },
+            { stimulus: singletonStim(3, 'red', 'v'), data: { color: 'red', tgtPosition: '3', rewardType: 'high', orientation: 'vertical' } },
+            { stimulus: singletonStim(4, 'red', 'v'), data: { color: 'red', tgtPosition: '4', rewardType: 'high', orientation: 'vertical' } },
+            { stimulus: singletonStim(5, 'red', 'v'), data: { color: 'red', tgtPosition: '5', rewardType: 'high', orientation: 'vertical' } },
+            { stimulus: singletonStim(0, 'green', 'h'), data: { color: 'green', tgtPosition: '0', rewardType: 'low', orientation: 'horizontal' } },
+            { stimulus: singletonStim(1, 'green', 'h'), data: { color: 'green', tgtPosition: '1', rewardType: 'low', orientation: 'horizontal' } },
+            { stimulus: singletonStim(2, 'green', 'h'), data: { color: 'green', tgtPosition: '2', rewardType: 'low', orientation: 'horizontal' } },
+            { stimulus: singletonStim(3, 'green', 'h'), data: { color: 'green', tgtPosition: '3', rewardType: 'low', orientation: 'horizontal' } },
+            { stimulus: singletonStim(4, 'green', 'h'), data: { color: 'green', tgtPosition: '4', rewardType: 'low', orientation: 'horizontal' } },
+            { stimulus: singletonStim(5, 'green', 'h'), data: { color: 'green', tgtPosition: '5', rewardType: 'low', orientation: 'horizontal' } },
+            { stimulus: singletonStim(0, 'green', 'v'), data: { color: 'green', tgtPosition: '0', rewardType: 'low', orientation: 'vertical' } },
+            { stimulus: singletonStim(1, 'green', 'v'), data: { color: 'green', tgtPosition: '1', rewardType: 'low', orientation: 'vertical' } },
+            { stimulus: singletonStim(2, 'green', 'v'), data: { color: 'green', tgtPosition: '2', rewardType: 'low', orientation: 'vertical' } },
+            { stimulus: singletonStim(3, 'green', 'v'), data: { color: 'green', tgtPosition: '3', rewardType: 'low', orientation: 'vertical' } },
+            { stimulus: singletonStim(4, 'green', 'v'), data: { color: 'green', tgtPosition: '4', rewardType: 'low', orientation: 'vertical' } },
+            { stimulus: singletonStim(5, 'green', 'v'), data: { color: 'green', tgtPosition: '5', rewardType: 'low', orientation: 'vertical' } },
+
+            { stimulus: singletonStim(0, 'red', 'h'), data: { color: 'red', tgtPosition: '0', rewardType: 'high', orientation: 'horizontal' } },
+            { stimulus: singletonStim(1, 'red', 'h'), data: { color: 'red', tgtPosition: '1', rewardType: 'high', orientation: 'horizontal' } },
+            { stimulus: singletonStim(2, 'red', 'h'), data: { color: 'red', tgtPosition: '2', rewardType: 'high', orientation: 'horizontal' } },
+            { stimulus: singletonStim(3, 'red', 'h'), data: { color: 'red', tgtPosition: '3', rewardType: 'high', orientation: 'horizontal' } },
+            { stimulus: singletonStim(4, 'red', 'h'), data: { color: 'red', tgtPosition: '4', rewardType: 'high', orientation: 'horizontal' } },
+            { stimulus: singletonStim(5, 'red', 'h'), data: { color: 'red', tgtPosition: '5', rewardType: 'high', orientation: 'horizontal' } },
+            { stimulus: singletonStim(0, 'red', 'v'), data: { color: 'red', tgtPosition: '0', rewardType: 'high', orientation: 'vertical' } },
+            { stimulus: singletonStim(1, 'red', 'v'), data: { color: 'red', tgtPosition: '1', rewardType: 'high', orientation: 'vertical' } },
+            { stimulus: singletonStim(2, 'red', 'v'), data: { color: 'red', tgtPosition: '2', rewardType: 'high', orientation: 'vertical' } },
+            { stimulus: singletonStim(3, 'red', 'v'), data: { color: 'red', tgtPosition: '3', rewardType: 'high', orientation: 'vertical' } },
+            { stimulus: singletonStim(4, 'red', 'v'), data: { color: 'red', tgtPosition: '4', rewardType: 'high', orientation: 'vertical' } },
+            { stimulus: singletonStim(5, 'red', 'v'), data: { color: 'red', tgtPosition: '5', rewardType: 'high', orientation: 'vertical' } },
+            { stimulus: singletonStim(0, 'green', 'h'), data: { color: 'green', tgtPosition: '0', rewardType: 'low', orientation: 'horizontal' } },
+            { stimulus: singletonStim(1, 'green', 'h'), data: { color: 'green', tgtPosition: '1', rewardType: 'low', orientation: 'horizontal' } },
+            { stimulus: singletonStim(2, 'green', 'h'), data: { color: 'green', tgtPosition: '2', rewardType: 'low', orientation: 'horizontal' } },
+            { stimulus: singletonStim(3, 'green', 'h'), data: { color: 'green', tgtPosition: '3', rewardType: 'low', orientation: 'horizontal' } },
+            { stimulus: singletonStim(4, 'green', 'h'), data: { color: 'green', tgtPosition: '4', rewardType: 'low', orientation: 'horizontal' } },
+            { stimulus: singletonStim(5, 'green', 'h'), data: { color: 'green', tgtPosition: '5', rewardType: 'low', orientation: 'horizontal' } },
+            { stimulus: singletonStim(0, 'green', 'v'), data: { color: 'green', tgtPosition: '0', rewardType: 'low', orientation: 'vertical' } },
+            { stimulus: singletonStim(1, 'green', 'v'), data: { color: 'green', tgtPosition: '1', rewardType: 'low', orientation: 'vertical' } },
+            { stimulus: singletonStim(2, 'green', 'v'), data: { color: 'green', tgtPosition: '2', rewardType: 'low', orientation: 'vertical' } },
+            { stimulus: singletonStim(3, 'green', 'v'), data: { color: 'green', tgtPosition: '3', rewardType: 'low', orientation: 'vertical' } },
+            { stimulus: singletonStim(4, 'green', 'v'), data: { color: 'green', tgtPosition: '4', rewardType: 'low', orientation: 'vertical' } },
+            { stimulus: singletonStim(5, 'green', 'v'), data: { color: 'green', tgtPosition: '5', rewardType: 'low', orientation: 'vertical' } },
+
+            { stimulus: singletonStim(0, 'red', 'h'), data: { color: 'red', tgtPosition: '0', rewardType: 'high', orientation: 'horizontal' } },
+            { stimulus: singletonStim(1, 'red', 'h'), data: { color: 'red', tgtPosition: '1', rewardType: 'high', orientation: 'horizontal' } },
+            { stimulus: singletonStim(2, 'red', 'h'), data: { color: 'red', tgtPosition: '2', rewardType: 'high', orientation: 'horizontal' } },
+            { stimulus: singletonStim(3, 'red', 'h'), data: { color: 'red', tgtPosition: '3', rewardType: 'high', orientation: 'horizontal' } },
+            { stimulus: singletonStim(4, 'red', 'h'), data: { color: 'red', tgtPosition: '4', rewardType: 'high', orientation: 'horizontal' } },
+            { stimulus: singletonStim(5, 'red', 'h'), data: { color: 'red', tgtPosition: '5', rewardType: 'high', orientation: 'horizontal' } },
+            { stimulus: singletonStim(0, 'red', 'v'), data: { color: 'red', tgtPosition: '0', rewardType: 'high', orientation: 'vertical' } },
+            { stimulus: singletonStim(1, 'red', 'v'), data: { color: 'red', tgtPosition: '1', rewardType: 'high', orientation: 'vertical' } },
+            { stimulus: singletonStim(2, 'red', 'v'), data: { color: 'red', tgtPosition: '2', rewardType: 'high', orientation: 'vertical' } },
+            { stimulus: singletonStim(3, 'red', 'v'), data: { color: 'red', tgtPosition: '3', rewardType: 'high', orientation: 'vertical' } },
+            { stimulus: singletonStim(4, 'red', 'v'), data: { color: 'red', tgtPosition: '4', rewardType: 'high', orientation: 'vertical' } },
+            { stimulus: singletonStim(5, 'red', 'v'), data: { color: 'red', tgtPosition: '5', rewardType: 'high', orientation: 'vertical' } },
+            { stimulus: singletonStim(0, 'green', 'h'), data: { color: 'green', tgtPosition: '0', rewardType: 'low', orientation: 'horizontal' } },
+            { stimulus: singletonStim(1, 'green', 'h'), data: { color: 'green', tgtPosition: '1', rewardType: 'low', orientation: 'horizontal' } },
+            { stimulus: singletonStim(2, 'green', 'h'), data: { color: 'green', tgtPosition: '2', rewardType: 'low', orientation: 'horizontal' } },
+            { stimulus: singletonStim(3, 'green', 'h'), data: { color: 'green', tgtPosition: '3', rewardType: 'low', orientation: 'horizontal' } },
+            { stimulus: singletonStim(4, 'green', 'h'), data: { color: 'green', tgtPosition: '4', rewardType: 'low', orientation: 'horizontal' } },
+            { stimulus: singletonStim(5, 'green', 'h'), data: { color: 'green', tgtPosition: '5', rewardType: 'low', orientation: 'horizontal' } },
+            { stimulus: singletonStim(0, 'green', 'v'), data: { color: 'green', tgtPosition: '0', rewardType: 'low', orientation: 'vertical' } },
+            { stimulus: singletonStim(1, 'green', 'v'), data: { color: 'green', tgtPosition: '1', rewardType: 'low', orientation: 'vertical' } },
+            { stimulus: singletonStim(2, 'green', 'v'), data: { color: 'green', tgtPosition: '2', rewardType: 'low', orientation: 'vertical' } },
+            { stimulus: singletonStim(3, 'green', 'v'), data: { color: 'green', tgtPosition: '3', rewardType: 'low', orientation: 'vertical' } },
+            { stimulus: singletonStim(4, 'green', 'v'), data: { color: 'green', tgtPosition: '4', rewardType: 'low', orientation: 'vertical' } },
+            { stimulus: singletonStim(5, 'green', 'v'), data: { color: 'green', tgtPosition: '5', rewardType: 'low', orientation: 'vertical' } },
+        ],
+        randomize_order: true,
+        sample: {
+            type: 'without-replacement',
+            size: 10,
+        },
+        conditional_function: function () {
+            if (conditionColor[0] == 'red') {
+                return true
+            } else {
+                return false
+            }
+        }
+    }
+    var VDACtask = {
+        timeline: [VDACtaskGreen, VDACtaskRed]
+    }
+
+    ////////////////////////////////////////////////////////////////////RSVP Task////////////////////////////////////////////////////////////////////
+
+    var speedRSVP = 500 //speed up or slow down RSVP here 
+    var letterStim = []
+    var letterTgt = []
+    var qwer = '182 18b 195 1a2 1be 1c2 222 238 239 3a0 3a6 3b8 3c6 3d6 3d7 3e4 3e6 3e7 3ea 3ec 3fe 3ff 402 409 414 416 44e 460 464 466 46a 472 471 4a6 4a8 514 516 52c 533 539 538 53b 540 53f 542 543 547 54a 54b 554 571 573 579 57b 1c96 1c97 1c99 1c9f 1ca2 1ca4 1cad 1cb1 1cb5'
+
+    function memoryStim(tgtPosition, tgtColor) {
+        var letters = jsPsych.randomization.sampleWithoutReplacement(qwer.split(' '), 4)
+        for (i = 0; i <= 3; i++) {
+            if (i == tgtPosition) {
+                letterStim[i] = '<p style="text-align:center; font-family: Arial; font-size:1000%; color:' + tgtColor + '"; >&#x' + letters[i].toString() + '</p>'
+            } else {
+                letterStim[i] = '<p style="text-align:center; font-family: Arial; font-size:1000%;">&#x' + letters[i].toString() + '</p>'
+            }
+            letterTgt[i] =      '<p style="text-align:center; font-family: Arial; font-size:1000%;">&#x' + letters[i].toString() + '</p>'
+        }
+    }
+
+    //'<p style="text-align:center;" style="font-size:160%;" style="color:' + tgtColor + '"; >&#x' + letters[i].toString() + '</p>'
+
+    var mask = '<svg xmlns="http://www.w3.org/2000/svg" width="500" height="500" viewBox="-5 -5 20 20"> <rect x="0" y="0" width="10" height="10" /><path fill="#FFF" d="M 0,1 H 10 v 1 H 0 z ' +
+        'm 0,2 H 10 v 1 H 0 z' +
+        'm 0,2 H 10 v 1 H 0 z' +
+        'm 0,2 H 10 v 1 H 0 z' +
+        'm 0,2 H 10 v 1 H 0 z' +
+        'M 1,0 V 10 h 1 V 0 z' +
+        'm 2,0 V 10 h 1 V 0 z' +
+        'm 2,0 V 10 h 1 V 0 z' +
+        'm 2,0 V 10 h 1 V 0 z' +
+        'm 2,0 V 10 h 1 V 0 z"/></svg>'
+
+    var RSVPinstructions = {
+        type: 'instructions',
+        pages: ["You have finished the first task of the study and will now recieve instructions for the second task. ",
+            '<p>You will see a series of three non-english characters presented rapidly on the center of your screen. ' +
+            'Try to remember these three characters. After a brief delay, another character will be presented on the screen with a prompt. ' +
+            'That character will either be one that has been previously presented in the set or it will be a new character that has not been presented in the set. </p>' +
+
+            '<p>Your task will be to identify whether the prompted character was previously presented or if it is new character as quickly as possible. ' +
+            'Press "s" if that character is the same as one of the previously presented characters, or press "d" if that character is different from the previously presented characters. ' +
+            '<p>You will see an example on the next page. ',
+            '<p>These are three example characters that could appear on your screen. <p/>' +
+            '<p> &#x182 &#x195 &#x1a2 </p>' +
+            '<p>If a previous character such as "&#x182" were to appear in the prompt, you would press "s" to indicate it is the same as a letter in the previous set.</p>' +
+            '<p>If a new character such as "&#x1be" were to appear in the prompt, you would press "d" to indicate it is a different letter from the previous set.</p>' +
+            '<p>You will be shown if your response was correct or incorrect after each trial. </p>' +
+            'Try to respond as quickly and as accurately as you can. If you understand these instructions, click to proceed and you will be given 10 practice trials ' +
+            'with the option to review these instructions before starting the experiment.</p>'
+        ],
+        show_clickable_nav: true,
+        show_page_number: true,
+        on_start: function () { document.body.style.cursor = 'auto' },
+        on_finish: function () { document.body.style.cursor = 'none' },
+    }
+    var RSVPtest = {
+        timeline: [
+            {
+                type: 'html-keyboard-response',
+                stimulus: jsPsych.timelineVariable('t1'),
+                choices: jsPsych.NO_KEYS,
+                trial_duration: speedRSVP,
+            },
+            {
+                type: 'html-keyboard-response',
+                stimulus: jsPsych.timelineVariable('t2'),
+                choices: jsPsych.NO_KEYS,
+                trial_duration: speedRSVP,
+            },
+            {
+                type: 'html-keyboard-response',
+                stimulus: jsPsych.timelineVariable('t3'),
+                choices: jsPsych.NO_KEYS,
+                trial_duration: speedRSVP,
+            },
+            {
+                type: 'html-keyboard-response',
+                stimulus: mask,
+                choices: jsPsych.NO_KEYS,
+                trial_duration: 500,
+            },
+            {
+                type: 'html-keyboard-response',
+                stimulus: jsPsych.timelineVariable('tgt'),
+                prompt: '<p>key 1 or key 2</p>',
+                choices: [keys[0], keys[1]],
+                trial_duration: 5000,
+                data: jsPsych.timelineVariable('data'),
+                on_finish: function (data) {
+                    var correct = null;
+                    if (data.tgtPosition !== 'n' && data.key_press == keys[0] || data.tgtPosition == 'n' && data.key_press == keys[1]) {
+                        correct = true
+                    } else if (data.tgtPosition !== 'n' && data.key_press == keys[1] || data.tgtPosition == 'n' && data.key_press == keys[0]) {
+                        correct = false
+                    }
+                    data.correct = correct
+                }
+            }]
+    }
+
+    var RSVPexercise = {
+        timeline: [fixation, RSVPtest, trainingFeedback],
+        timeline_variables: [
+            { stimulus: memoryStim(null, 'red'), tgt: letterTgt[0], t1: letterStim[0], t2: letterStim[1], t3: letterStim[2], data: { tgtPosition: '1' } },
+            { stimulus: memoryStim(null, 'red'), tgt: letterTgt[1], t1: letterStim[0], t2: letterStim[1], t3: letterStim[2], data: { tgtPosition: '2' } },
+            { stimulus: memoryStim(null, 'red'), tgt: letterTgt[2], t1: letterStim[0], t2: letterStim[1], t3: letterStim[2], data: { tgtPosition: '3' } },
+            { stimulus: memoryStim(null, 'red'), tgt: letterTgt[0], t1: letterStim[0], t2: letterStim[1], t3: letterStim[2], data: { tgtPosition: '1' } },
+            { stimulus: memoryStim(null, 'red'), tgt: letterTgt[1], t1: letterStim[0], t2: letterStim[1], t3: letterStim[2], data: { tgtPosition: '2' } },
+            { stimulus: memoryStim(null, 'red'), tgt: letterTgt[3], t1: letterStim[0], t2: letterStim[1], t3: letterStim[2], data: { tgtPosition: 'n' } },
+            { stimulus: memoryStim(null, 'red'), tgt: letterTgt[3], t1: letterStim[0], t2: letterStim[1], t3: letterStim[2], data: { tgtPosition: 'n' } },
+            { stimulus: memoryStim(null, 'red'), tgt: letterTgt[3], t1: letterStim[0], t2: letterStim[1], t3: letterStim[2], data: { tgtPosition: 'n' } },
+            { stimulus: memoryStim(null, 'red'), tgt: letterTgt[3], t1: letterStim[0], t2: letterStim[1], t3: letterStim[2], data: { tgtPosition: 'n' } },
+            { stimulus: memoryStim(null, 'red'), tgt: letterTgt[3], t1: letterStim[0], t2: letterStim[1], t3: letterStim[2], data: { tgtPosition: 'n' } },
+        ],
+        randomize_order: true,
+    }
+
+    var RSVPtraining = {
+        timeline: [RSVPinstructions, RSVPexercise, exerciseRepeat],
+        loop_function: function (data) {
+            if (jsPsych.pluginAPI.convertKeyCharacterToKeyCode('r') == jsPsych.data.getLastTrialData().values()[0].key_press) {
+                return true;
+            } else {
+                return false;
+            }
+        },
+    }
+
+    var RSVPfeedback = {
+        type: 'html-keyboard-response',
+        stimulus: function () {
+            if (jsPsych.data.getLastTrialData().values()[0].correct == true) {
+                attentionCounter.push(0)
+                attentionCounter.shift()
+                return feedbackCorrect
+            } else if (jsPsych.data.getLastTrialData().values()[0].correct == false) {
+                attentionCounter.push(0)
+                attentionCounter.shift()
+                return feedbackMiss
+            } else if (jsPsych.data.getLastTrialData().values()[0].correct == null) {
+                attentionCounter.push(1)
+                attentionCounter.shift()
+                return feedbackMiss
+            }
+        },
+        on_finish: function (data) {
+            breakCounter++
+            console.log(breakCounter)
+        },
+        choices: jsPsych.NO_KEYS,
+        trial_duration: 1500,
+        post_trial_gap: 1000,
+    }
+
+    var RSVPtask = {
+        timeline: [fixation, RSVPtest, RSVPfeedback, attentionCheck, restPeriod],
+        timeline_variables: [ //'n' indicates "different" for the target in tgtPosition, 'n' indicates 'no color' in colorPosition
+            { stimulus: memoryStim(null, 'green'), tgt: letterTgt[0], t1: letterStim[0], t2: letterStim[1], t3: letterStim[2], data: { tgtPosition: '1', color: 'green', colorPosition: 'n' } },
+            { stimulus: memoryStim(null, 'green'), tgt: letterTgt[1], t1: letterStim[0], t2: letterStim[1], t3: letterStim[2], data: { tgtPosition: '2', color: 'green', colorPosition: 'n' } },
+            { stimulus: memoryStim(null, 'green'), tgt: letterTgt[2], t1: letterStim[0], t2: letterStim[1], t3: letterStim[2], data: { tgtPosition: '3', color: 'green', colorPosition: 'n' } },
+            { stimulus: memoryStim(null, 'green'), tgt: letterTgt[3], t1: letterStim[0], t2: letterStim[1], t3: letterStim[2], data: { tgtPosition: 'n', color: 'green', colorPosition: 'n' } },
+            { stimulus: memoryStim(null, 'green'), tgt: letterTgt[3], t1: letterStim[0], t2: letterStim[1], t3: letterStim[2], data: { tgtPosition: 'n', color: 'green', colorPosition: 'n' } },
+            { stimulus: memoryStim(null, 'green'), tgt: letterTgt[3], t1: letterStim[0], t2: letterStim[1], t3: letterStim[2], data: { tgtPosition: 'n', color: 'green', colorPosition: 'n' } },
+
+            { stimulus: memoryStim(0, 'green'), tgt: letterTgt[0], t1: letterStim[0], t2: letterStim[1], t3: letterStim[2], data: { tgtPosition: '1', color: 'green', colorPosition: '1' } },
+            { stimulus: memoryStim(0, 'green'), tgt: letterTgt[1], t1: letterStim[0], t2: letterStim[1], t3: letterStim[2], data: { tgtPosition: '2', color: 'green', colorPosition: '1' } },
+            { stimulus: memoryStim(0, 'green'), tgt: letterTgt[2], t1: letterStim[0], t2: letterStim[1], t3: letterStim[2], data: { tgtPosition: '3', color: 'green', colorPosition: '1' } },
+            { stimulus: memoryStim(0, 'green'), tgt: letterTgt[3], t1: letterStim[0], t2: letterStim[1], t3: letterStim[2], data: { tgtPosition: 'n', color: 'green', colorPosition: '1' } },
+            { stimulus: memoryStim(0, 'green'), tgt: letterTgt[3], t1: letterStim[0], t2: letterStim[1], t3: letterStim[2], data: { tgtPosition: 'n', color: 'green', colorPosition: '1' } },
+            { stimulus: memoryStim(0, 'green'), tgt: letterTgt[3], t1: letterStim[0], t2: letterStim[1], t3: letterStim[2], data: { tgtPosition: 'n', color: 'green', colorPosition: '1' } },
+
+            { stimulus: memoryStim(1, 'green'), tgt: letterTgt[0], t1: letterStim[0], t2: letterStim[1], t3: letterStim[2], data: { tgtPosition: '1', color: 'green', colorPosition: '2' } },
+            { stimulus: memoryStim(1, 'green'), tgt: letterTgt[1], t1: letterStim[0], t2: letterStim[1], t3: letterStim[2], data: { tgtPosition: '2', color: 'green', colorPosition: '2' } },
+            { stimulus: memoryStim(1, 'green'), tgt: letterTgt[2], t1: letterStim[0], t2: letterStim[1], t3: letterStim[2], data: { tgtPosition: '3', color: 'green', colorPosition: '2' } },
+            { stimulus: memoryStim(1, 'green'), tgt: letterTgt[3], t1: letterStim[0], t2: letterStim[1], t3: letterStim[2], data: { tgtPosition: 'n', color: 'green', colorPosition: '2' } },
+            { stimulus: memoryStim(1, 'green'), tgt: letterTgt[3], t1: letterStim[0], t2: letterStim[1], t3: letterStim[2], data: { tgtPosition: 'n', color: 'green', colorPosition: '2' } },
+            { stimulus: memoryStim(1, 'green'), tgt: letterTgt[3], t1: letterStim[0], t2: letterStim[1], t3: letterStim[2], data: { tgtPosition: 'n', color: 'green', colorPosition: '2' } },
+
+            { stimulus: memoryStim(2, 'green'), tgt: letterTgt[0], t1: letterStim[0], t2: letterStim[1], t3: letterStim[2], data: { tgtPosition: '1', color: 'green', colorPosition: '3' } },
+            { stimulus: memoryStim(2, 'green'), tgt: letterTgt[1], t1: letterStim[0], t2: letterStim[1], t3: letterStim[2], data: { tgtPosition: '2', color: 'green', colorPosition: '3' } },
+            { stimulus: memoryStim(2, 'green'), tgt: letterTgt[2], t1: letterStim[0], t2: letterStim[1], t3: letterStim[2], data: { tgtPosition: '3', color: 'green', colorPosition: '3' } },
+            { stimulus: memoryStim(2, 'green'), tgt: letterTgt[3], t1: letterStim[0], t2: letterStim[1], t3: letterStim[2], data: { tgtPosition: 'n', color: 'green', colorPosition: '3' } },
+            { stimulus: memoryStim(2, 'green'), tgt: letterTgt[3], t1: letterStim[0], t2: letterStim[1], t3: letterStim[2], data: { tgtPosition: 'n', color: 'green', colorPosition: '3' } },
+            { stimulus: memoryStim(2, 'green'), tgt: letterTgt[3], t1: letterStim[0], t2: letterStim[1], t3: letterStim[2], data: { tgtPosition: 'n', color: 'green', colorPosition: '3' } },
+
+            { stimulus: memoryStim(null, 'red'), tgt: letterTgt[0], t1: letterStim[0], t2: letterStim[1], t3: letterStim[2], data: { tgtPosition: '1', color: 'red', colorPosition: 'n' } },
+            { stimulus: memoryStim(null, 'red'), tgt: letterTgt[1], t1: letterStim[0], t2: letterStim[1], t3: letterStim[2], data: { tgtPosition: '2', color: 'red', colorPosition: 'n' } },
+            { stimulus: memoryStim(null, 'red'), tgt: letterTgt[2], t1: letterStim[0], t2: letterStim[1], t3: letterStim[2], data: { tgtPosition: '3', color: 'red', colorPosition: 'n' } },
+            { stimulus: memoryStim(null, 'red'), tgt: letterTgt[3], t1: letterStim[0], t2: letterStim[1], t3: letterStim[2], data: { tgtPosition: 'n', color: 'red', colorPosition: 'n' } },
+            { stimulus: memoryStim(null, 'red'), tgt: letterTgt[3], t1: letterStim[0], t2: letterStim[1], t3: letterStim[2], data: { tgtPosition: 'n', color: 'red', colorPosition: 'n' } },
+            { stimulus: memoryStim(null, 'red'), tgt: letterTgt[3], t1: letterStim[0], t2: letterStim[1], t3: letterStim[2], data: { tgtPosition: 'n', color: 'red', colorPosition: 'n' } },
+
+            { stimulus: memoryStim(0, 'red'), tgt: letterTgt[0], t1: letterStim[0], t2: letterStim[1], t3: letterStim[2], data: { tgtPosition: '1', color: 'red', colorPosition: '1' } },
+            { stimulus: memoryStim(0, 'red'), tgt: letterTgt[1], t1: letterStim[0], t2: letterStim[1], t3: letterStim[2], data: { tgtPosition: '2', color: 'red', colorPosition: '1' } },
+            { stimulus: memoryStim(0, 'red'), tgt: letterTgt[2], t1: letterStim[0], t2: letterStim[1], t3: letterStim[2], data: { tgtPosition: '3', color: 'red', colorPosition: '1' } },
+            { stimulus: memoryStim(0, 'red'), tgt: letterTgt[3], t1: letterStim[0], t2: letterStim[1], t3: letterStim[2], data: { tgtPosition: 'n', color: 'red', colorPosition: '1' } },
+            { stimulus: memoryStim(0, 'red'), tgt: letterTgt[3], t1: letterStim[0], t2: letterStim[1], t3: letterStim[2], data: { tgtPosition: 'n', color: 'red', colorPosition: '1' } },
+            { stimulus: memoryStim(0, 'red'), tgt: letterTgt[3], t1: letterStim[0], t2: letterStim[1], t3: letterStim[2], data: { tgtPosition: 'n', color: 'red', colorPosition: '1' } },
+
+            { stimulus: memoryStim(1, 'red'), tgt: letterTgt[0], t1: letterStim[0], t2: letterStim[1], t3: letterStim[2], data: { tgtPosition: '1', color: 'red', colorPosition: '2' } },
+            { stimulus: memoryStim(1, 'red'), tgt: letterTgt[1], t1: letterStim[0], t2: letterStim[1], t3: letterStim[2], data: { tgtPosition: '2', color: 'red', colorPosition: '2' } },
+            { stimulus: memoryStim(1, 'red'), tgt: letterTgt[2], t1: letterStim[0], t2: letterStim[1], t3: letterStim[2], data: { tgtPosition: '3', color: 'red', colorPosition: '2' } },
+            { stimulus: memoryStim(1, 'red'), tgt: letterTgt[3], t1: letterStim[0], t2: letterStim[1], t3: letterStim[2], data: { tgtPosition: 'n', color: 'red', colorPosition: '2' } },
+            { stimulus: memoryStim(1, 'red'), tgt: letterTgt[3], t1: letterStim[0], t2: letterStim[1], t3: letterStim[2], data: { tgtPosition: 'n', color: 'red', colorPosition: '2' } },
+            { stimulus: memoryStim(1, 'red'), tgt: letterTgt[3], t1: letterStim[0], t2: letterStim[1], t3: letterStim[2], data: { tgtPosition: 'n', color: 'red', colorPosition: '2' } },
+
+            { stimulus: memoryStim(2, 'red'), tgt: letterTgt[0], t1: letterStim[0], t2: letterStim[1], t3: letterStim[2], data: { tgtPosition: '1', color: 'red', colorPosition: '3' } },
+            { stimulus: memoryStim(2, 'red'), tgt: letterTgt[1], t1: letterStim[0], t2: letterStim[1], t3: letterStim[2], data: { tgtPosition: '2', color: 'red', colorPosition: '3' } },
+            { stimulus: memoryStim(2, 'red'), tgt: letterTgt[2], t1: letterStim[0], t2: letterStim[1], t3: letterStim[2], data: { tgtPosition: '3', color: 'red', colorPosition: '3' } },
+            { stimulus: memoryStim(2, 'red'), tgt: letterTgt[3], t1: letterStim[0], t2: letterStim[1], t3: letterStim[2], data: { tgtPosition: 'n', color: 'red', colorPosition: '3' } },
+            { stimulus: memoryStim(2, 'red'), tgt: letterTgt[3], t1: letterStim[0], t2: letterStim[1], t3: letterStim[2], data: { tgtPosition: 'n', color: 'red', colorPosition: '3' } },
+            { stimulus: memoryStim(2, 'red'), tgt: letterTgt[3], t1: letterStim[0], t2: letterStim[1], t3: letterStim[2], data: { tgtPosition: 'n', color: 'red', colorPosition: '3' } },
+
+        ],
+        randomize_order: true,
+        sample: {
+            type: 'without-replacement',
+            size: 10,
+        }
+    }
+    var debrief = {
+        timeline: [
+            {
+                type: 'external-html',
+                url: "http://labs.psychology.illinois.edu/~jy57/memory_capture/supportFiles/Debrief.html",
+                cont_btn: "end",
+                on_start: function () { document.body.style.cursor = 'auto' },
+            },
+            {
+                type: 'fullscreen',
+                fullscreen_mode: false,
+            },
+        ]
+    }
+
+    function saveData(name, data) {
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', 'write_data.php'); // 'write_data.php' is the path to the php file described above.
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.send(JSON.stringify({ filename: name, filedata: data }));
+    }
+
+    var screenSize
+    function determineScreen() {
+        if (window.screen.width <= window.screen.height) {
+            screenSize = window.screen.width
+        } else {
+            screenSize = window.screen.height
+        }
+    }
+    determineScreen()
+
+    jsPsych.init({
+        //consent,demographics,VDACtraining,instructionsGap,VDACtask,RSVPtraining,instructionsGap,RSVPtask,debrief
+        timeline: [RSVPtask, debrief],
+        experiment_width: screenSize * .95,
+        override_safe_mode: true,
+        exclusions: {
+            min_width: 480,
+            min_height: 480
+        },
+        on_finish: function () {
+            //jsPsych.data.displayData()
+            saveData(subjectID.toString(), jsPsych.data.get().csv());
+        }
+    })
+</script>
+
+</html>
