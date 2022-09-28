@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <script src="jspsych-psychophysics/jspsych-dist/dist/jspsych.js"></script>
+    <script src="jspsych-psychophysics/jspsych-psychophysics.js"></script>
+
+    <script src="jspsych-psychophysics/jspsych-dist/dist/plugin-html-keyboard-response.js"></script>
+    <script src="jspsych-psychophysics/jspsych-dist/dist/plugin-html-button-response.js"></script>
+    <script src="jspsych-psychophysics/jspsych-dist/dist/plugin-preload.js"></script>
+
+
+
+    <link rel="stylesheet" href="jspsych-psychophysics/jspsych-dist/dist/jspsych.css">
+</head>
+
+<body></body>
+<script>
+
+    /*
+    Changelog:
+    22-09-19
+    Created display of 6 numbers based on Heiley's code
+
+    To do:
+    Play with creating sound stimulus
+    */
+
+    document.body.style.backgroundColor = 'gray';
+
+    const jsPsych = initJsPsych({
+        on_finish: function () {
+            jsPsych.data.displayData();
+        }
+    })
+
+    const wd = window.innerWidth * .95
+    const ht = wd * (9 / 16)
+    const keys = ['z', 'm']
+
+    const fixationStim = [{
+        obj_type: 'line',
+        startX: 0,
+        startY: 0,
+        line_length: 50,
+        angle: 0,
+        line_width: 5,
+        line_color: 'black',
+        origin_center: true,
+    }, {
+        obj_type: 'line',
+        startX: 0,
+        startY: 0,
+        line_length: 50,
+        angle: 90,
+        line_width: 5,
+        line_color: 'black',
+        origin_center: true,
+    }]
+
+    //Generate array stimulus of numbers
+    const oddNum = ['1', '3', '5', '7', '9'];
+    const evenNum = ['0', '2', '4', '6', '8']
+    var shuffledOdd = jsPsych.randomization.shuffle(oddNum);
+    var shuffledEven = jsPsych.randomization.shuffle(evenNum);
+    var txtArr = []
+    for (let i = 0; i < 5; i++) {
+        txtArr.push(shuffledEven[1])
+    }
+    txtArr.splice(0, 0, shuffledOdd[1])
+    console.log(txtArr)
+
+    const cX = [.26 * ht, .0 * ht, -.26 * ht, -.26 * ht, .0 * ht, .26 * ht]
+    const cY = [.15 * ht, .30 * ht, .15 * ht, -.15 * ht, -.30 * ht, -.15 * ht]
+    const cR = [.1 * ht, .09 * ht]
+
+    var arrVDACstim = []
+    for (let i = 0; i < 6; i++) {
+        arrVDACstim.push({
+            obj_type: 'text',
+            startX: cX[i],
+            startY: cY[i],
+            content: txtArr[i],
+            font: "22px 'Arial'",
+            text_color: 'black',
+            origin_center: true
+        }
+        )
+    }
+
+
+    const soundArr = jsPsych.randomization.shuffle([
+        'supportFiles/0.mp3',
+        'supportFiles/1.mp3',
+        'supportFiles/2.mp3',
+        'supportFiles/3.mp3',
+        'supportFiles/4.mp3',
+        'supportFiles/5.mp3',
+    ])
+
+    const preload = {
+        type: jsPsychPreload,
+        audio: soundArr,
+    }
+
+    var stimArr = []
+    for (let i = 0; i < 6; i++) {
+        stimArr.push({
+            obj_type: 'sound',
+            file: soundArr[i],
+            show_start_time: i * 600
+        }
+        )
+    }
+
+    const numArr = jsPsych.randomization.shuffle([
+        '0',
+        '1',
+        '2',
+        '3',
+        '4',
+        '5',
+    ]
+    )
+
+    for (let i = 0; i < 6; i++) {
+        stimArr.push({
+            obj_type: 'text',
+            content: numArr[i],
+            show_start_time: i * 600,
+            show_end_time: i * 600 + 600
+        }
+        )
+    }
+
+    const trial = {
+        type: jsPsychPsychophysics,
+        stimuli: stimArr, // These can be referenced using the jsPsych.currentTrial().stim_array.
+        prompt: '<p>Pressing the F or J key to play the sound.</p>',
+        response_type: 'key',
+        choices: [' '],
+    }
+
+    // See also jspsych-audio-keyboard-response.html
+    const pre_audio = {
+        type: jsPsychHtmlKeyboardResponse,
+        stimulus: 'Recent versions of Chrome require the user to interact with a page before it can play audio. '
+    }
+
+    jsPsych.run([pre_audio, trial])
+</script>
+
+</html>
