@@ -29,42 +29,22 @@
     To do:
     Play with creating sound stimulus
     */
-
-    document.body.style.backgroundColor = 'gray';
-
     const jsPsych = initJsPsych({
         on_finish: function () {
             jsPsych.data.displayData();
         }
     })
 
+    document.body.style.backgroundColor = 'gray';
     const wd = window.innerWidth * .95
     const ht = wd * (9 / 16)
     const keys = ['z', 'm']
 
-    const fixationStim = [{
-        obj_type: 'line',
-        startX: 0,
-        startY: 0,
-        line_length: 50,
-        angle: 0,
-        line_width: 5,
-        line_color: 'black',
-        origin_center: true,
-    }, {
-        obj_type: 'line',
-        startX: 0,
-        startY: 0,
-        line_length: 50,
-        angle: 90,
-        line_width: 5,
-        line_color: 'black',
-        origin_center: true,
-    }]
-
-    //Generate array stimulus of numbers
-    const oddNum = ['1', '3', '5', '7', '9'];
+    const oddNum = ['1', '3', '5', '7', '9']
     const evenNum = ['0', '2', '4', '6', '8']
+    const vowel = ['A', 'E', 'I', 'O', 'U']
+    const consonant = ['R', 'T', 'N', 'S', 'L']
+
     var shuffledOdd = jsPsych.randomization.shuffle(oddNum);
     var shuffledEven = jsPsych.randomization.shuffle(evenNum);
     var txtArr = []
@@ -85,13 +65,12 @@
             startX: cX[i],
             startY: cY[i],
             content: txtArr[i],
-            font: "22px 'Arial'",
+            font: "22px 'Consolas'",
             text_color: 'black',
             origin_center: true
         }
         )
     }
-
 
     const soundArr = jsPsych.randomization.shuffle([
         'supportFiles/0.mp3',
@@ -118,18 +97,14 @@
     }
 
     const numArr = jsPsych.randomization.shuffle([
-        '0',
-        '1',
-        '2',
-        '3',
-        '4',
-        '5',
+        '0', '1', '2', '3', '4', '5',
     ]
     )
 
     for (let i = 0; i < 6; i++) {
         stimArr.push({
             obj_type: 'text',
+            font: "22px 'Consolas'",
             content: numArr[i],
             show_start_time: i * 600,
             show_end_time: i * 600 + 600
@@ -137,9 +112,16 @@
         )
     }
 
-    const trial = {
+    const audioTrial = {
         type: jsPsychPsychophysics,
-        stimuli: stimArr, // These can be referenced using the jsPsych.currentTrial().stim_array.
+        stimuli: stimArr, //arrVDACstim// These can be referenced using the jsPsych.currentTrial().stim_array.
+        response_type: 'key',
+        choices: [' '],
+    }
+
+    const visualTrial = {
+        type: jsPsychPsychophysics,
+        stimuli: arrVDACstim, //arrVDACstim// These can be referenced using the jsPsych.currentTrial().stim_array.
         prompt: '<p>Pressing the F or J key to play the sound.</p>',
         response_type: 'key',
         choices: [' '],
@@ -151,7 +133,7 @@
         stimulus: 'Recent versions of Chrome require the user to interact with a page before it can play audio. '
     }
 
-    jsPsych.run([pre_audio, trial])
+    jsPsych.run([pre_audio, visualTrial])
 </script>
 
 </html>
