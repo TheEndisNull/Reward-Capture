@@ -13,8 +13,8 @@
     <script src="jspsych-psychophysics-master/jspsych-psychophysics.js"></script>
     <script src="jspsych-psychophysics-master/jspsych-dist/dist/plugin-call-function.js"></script>
 
-    <script type="text/javascript" src="2022-04-14 VDAC.js"></script>
-    <script type="text/javascript" src="2022-04-14 RSVP.js"></script>
+    <script type="text/javascript" src="2022-04-14 VDAC TEST.js"></script>
+    <script type="text/javascript" src="2022-04-14 RSVP TEST.js"></script>
 
     <script></script>
 
@@ -65,7 +65,8 @@
     const date = new Date();
     var stDate = date.getMonth() + '-' + date.getDate();
     var subID = jsPsych.randomization.randomID(3);
-    var cntBalance = ['r'];
+    //var cntBalance = ['r'];
+    var cntBalance = 2
     var fileName = cntBalance + '-' + stDate + '-' + subID
     var trialNum = 1
     var wd = window.innerWidth * .95
@@ -86,7 +87,7 @@
         correct: [],
         rt: [],
         rwdType: [], //reward type: high/low/none
-        tgtCol: [], //trarget color: red/green/black
+        rwdPos: [], //trarget color: red/green/black changed from tgtCol
         tgtDir: [], //target direction: horizontal/vertical
         tgtPos: [], //position of target item: 1, 2, 3, none
         colPos: [], //position of colored item
@@ -103,7 +104,7 @@
         }]
     }
 
-    jsPsych.run([startup,VDACtask])
+    jsPsych.run([RSVPtask])
 
 
 </script>

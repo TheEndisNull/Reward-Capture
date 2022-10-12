@@ -21,7 +21,7 @@ var brkRSVPfdbk = {
         dataOut.correct.push('brk')
         dataOut.rt.push('brk')
         dataOut.rwdType.push('brk')
-        dataOut.rwdPos.push('brk')
+        dataOut.tgtCol.push('brk')
         dataOut.tgtDir.push('brk')
         dataOut.tgtPos.push('brk')
         dataOut.colPos.push('brk')
@@ -81,8 +81,8 @@ function pickFont(font) {
 function drawMemStim(dir, color, colPos, tgt) {
     var arr = [...Array(90).keys()]
     arr = jsPsych.randomization.repeat(arr, 1);
-    arr = arr.splice(0, 4)
-
+    arr = arr.splice(0, 5)
+    console.log(arr)
     var colArr = ['black', 'black']
     if (color == 'r') {
         colArr.splice(colPos, 0, 'white')
@@ -93,12 +93,11 @@ function drawMemStim(dir, color, colPos, tgt) {
     }
 
     if (dir == 0) {
-        x = [.0 * ht, .3 * ht, 0 * ht, -.3 * ht]
-        y = [-.3 * ht, .0 * ht, .3 * ht, 0 * ht]
-
+        x = [.0 * ht, .15 * ht, 0 * ht, -.15 * ht]
+        y = [-.15 * ht, .0 * ht, .15 * ht, 0 * ht]
     } else if (dir == 1) {
-        x = [.0 * ht, -.26 * ht, .26 * ht];
-        y = [.30 * ht, -.15 * ht, -.15 * ht];
+        x = [.0 * ht, .15 * ht, 0 * ht, -.15 * ht]
+        y = [-.15 * ht, .0 * ht, .15 * ht, 0 * ht]
     }
 
     var arrMemStim = [{
@@ -131,44 +130,41 @@ function drawMemStim(dir, color, colPos, tgt) {
     }]
 
     //Draw mask
-    for (i = 0; i < 3; i++) {
+
+    const mask = {
+        obj_type: 'text',
+        content: 'X',
+        font: "200px 'Arial'",
+        startX: x[i], // location in the canvas
+        startY: y[i],
+        show_start_time: 1000,
+        show_end_time: 12500,
+        origin_center: true,
+    }
+
+    for (i = 0; i < 4; i++) {
         arrMemStim.push({
             obj_type: 'text',
             content: letters[arr[i]],
             startX: x[i], // location in the canvas
-            startY: y[i],
+            startY: y[i] + .3*ht,
             font: pickFont(arr[i]),
             text_color: colArr[i],
             show_end_time: 750,
             origin_center: true,
         }, {
-            obj_type: 'text',
-            content: 'X',
-            font: "200px 'Arial'",
+            ...mask,
             startX: x[i], // location in the canvas
             startY: y[i],
-            show_start_time: 1000,
-            show_end_time: 1250,
-            origin_center: true,
-        }, {
-            obj_type: 'text',
-            content: 'X',
-            font: "200px 'Arial'",
-            startX: x[i] + .07 * ht, // location in the canvas
+        }, { 
+            ...mask,
+            startX: x[i] + .07*ht, // location in the canvas
             startY: y[i],
-            show_start_time: 1000,
-            show_end_time: 1250,
-            origin_center: true,
-        }, {
-            obj_type: 'text',
-            content: 'X',
-            font: "200px 'Arial'",
-            startX: x[i] - .07 * ht, // location in the canvas
+        }, { 
+            ...mask,
+            startX: x[i] - .07*ht, // location in the canvas
             startY: y[i],
-            show_start_time: 1000,
-            show_end_time: 1250,
-            origin_center: true,
-        },
+        }
         )
     }
     return arrMemStim
@@ -241,19 +237,19 @@ var RSVPtest = {
         dataOut.cntBalance.push(data.condition)
         dataOut.correct.push(data.correct)
         dataOut.rt.push(data.rt)
-        if (data.rwdPos == cntBalance[0]) {
+        if (data.tgtCol == cntBalance[0]) {
             dataOut.rwdType.push(2)
-        } else if (data.rwdPos != cntBalance[0] & data.rwdPos != 'b') {
+        } else if (data.tgtCol != cntBalance[0] & data.tgtCol != 'b') {
             dataOut.rwdType.push(1)
         } else {
             dataOut.rwdType.push(0)
         }
-        dataOut.rwdPos.push(data.rwdPos)
+        //dataOut.tgtCol.push(data.tgtCol)
         dataOut.tgtPos.push(data.tgtPos)
         dataOut.colPos.push(data.colPos)
-        if (data.tgtPos == data.colPos & data.rwdPos != 'b') {
+        if (data.tgtPos == data.colPos & data.tgtCol != 'b') {
             dataOut.colMatch.push(2)
-        } else if (data.tgtPos != data.colPos & data.rwdPos != 'b') {
+        } else if (data.tgtPos != data.colPos & data.tgtCol != 'b') {
             dataOut.colMatch.push(1)
         } else {
             dataOut.colMatch.push(0)
@@ -282,7 +278,7 @@ for (r = 0; r < 3; r++) {
                             stimulus: drawMemStim(d, colArr[c], cp, t),
                             data: {
                                 trialType: 'RSVPtest',
-                                rwdPos: colArr[c],
+                                tgtCol: colArr[c],
                                 colPos: cp,
                                 tgtPos: t
                             }
@@ -296,7 +292,7 @@ for (r = 0; r < 3; r++) {
                             stimulus: drawMemStim(d, colArr[c], cp, 3),
                             data: {
                                 trialType: 'RSVPtest',
-                                rwdPos: colArr[c],
+                                tgtCol: colArr[c],
                                 colPos: cp,
                                 tgtPos: 3
                             }
@@ -312,7 +308,7 @@ for (r = 0; r < 3; r++) {
                         stimulus: drawMemStim(d, 'b', 3, t),
                         data: {
                             trialType: 'RSVPtest',
-                            rwdPos: 'b',
+                            tgtCol: 'b',
                             colPos: 3,
                             tgtPos: t
                         }
@@ -326,7 +322,7 @@ for (r = 0; r < 3; r++) {
                     stimulus: drawMemStim(d, 'b', 3, 3),    //(direction, [r,g,b], [0,1,2,3])
                     data: {
                         trialType: 'RSVPtest',                          //RSVPtest
-                        rwdPos: 'b',                                     //[r,g,b]
+                        tgtCol: 'b',                                     //[r,g,b]
                         colPos: 3,                                      //[0,1,2,3]
                         tgtPos: 3                                       //[0,1,2,3]
                     }

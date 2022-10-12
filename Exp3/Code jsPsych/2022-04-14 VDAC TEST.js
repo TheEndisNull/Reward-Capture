@@ -6,10 +6,174 @@ const jsPsych = initJsPsych({
 
 //sets reusable variables for screen width and height that avoids scrollbals
 var wd = window.innerWidth * .95
-var ht = wd*(9/16)
+var ht = wd * (9 / 16)
 var keys = ['z', 'm']
 
-//REWARD COUNTER
+var fixationStim = [{
+    obj_type: 'line',
+    startX: 0,
+    startY: 0,
+    line_length: 50,
+    angle: 0,
+    line_width: 5,
+    line_color: 'black',
+    origin_center: true,
+}, {
+    obj_type: 'line',
+    startX: 0,
+    startY: 0,
+    line_length: 50,
+    angle: 90,
+    line_width: 5,
+    line_color: 'black',
+    origin_center: true,
+}]
+
+var fixation = {    //Generates fixation cross for 400 - 1000 ms
+    type: jsPsychPsychophysics,
+    trial_duration: Math.random() * (600 - 400) + 400,
+    stimuli: fixationStim,
+    data: jsPsych.timelineVariable('data'),
+    canvas_width: wd,
+    canvas_height: ht,
+}
+
+function drawVDACtest(tgtPos, rwdPos, tgtDir) {
+    var cX = [.0 * ht, .3 * ht, 0 * ht, -.3 * ht]
+    var cY = [-.3 * ht, .0 * ht, .3 * ht, 0 * ht]
+    var cR = [.1 * ht, .09 * ht]
+    //TESTTESTTEST shows position of rewarded item
+    var colArr = (['black', 'black', 'black'])
+    colArr.splice(rwdPos, 0, 'white')
+
+    //Shuffles the order of diaganol lines, inserts target line
+    var testValue = Math.floor(Math.random() * 2) + 1;
+    switch (testValue) {
+        case 1:
+            var angle = [45, 45, -45];
+            break;
+        case 2:
+            var angle = [45, -45, -45];
+            break;
+    }
+    angle = jsPsych.randomization.shuffle(angle);
+
+    if (tgtDir == 'h') {
+        angle.splice(tgtPos, 0, '0')
+    } else if (tgtDir == 'v') {
+        angle.splice(tgtPos, 0, '90')
+    }
+    //Inserts circles and lines onto page, adds fixation cross and text. Returns stimulus
+    var arrVDACstim = []
+    arrVDACstim = arrVDACstim.concat(fixationStim);
+
+    for (i = 0; i < 4; i++) {
+        arrVDACstim.push({
+            obj_type: 'circle',
+            startX: cX[i],
+            startY: cY[i],
+            radius: cR[0],
+            line_color: colArr[i],
+            fill_color: 'grey',
+            line_width: 7,
+            origin_center: true,
+        }, {
+            obj_type: 'line',
+            startX: cX[i],
+            startY: cY[i],
+            line_length: 50,
+            line_width: 5,
+            angle: angle[i],
+            line_color: 'black',
+            origin_center: true,
+        }
+        )
+    }
+    return arrVDACstim
+}
+//Reuses drawVDACtest, adds content for training phase
+function drawVDACtrain(tgtPos, rwdPos, tgtDir) {
+    var arrVDACstim = drawVDACtest(tgtPos, rwdPos, tgtDir)
+    arrVDACstim.push({
+        obj_type: 'text',
+        startX: 'center',
+        startY: .95 * ht,
+        content: 'Press ' + keys[0] + ' for horizontal or ' + keys[1] + ' for vertical',
+        show_end_time: 2000 // disappear this text
+    })
+    return arrVDACstim
+}
+
+// CONVERT THIS INTO PRERENDERED IMAGE FILE
+var VDACinstructions = {
+    type: jsPsychInstructions,
+    pages: [
+        '<div style= "font-size:20px;" <p> <strong> Welcome to the experiment! </strong><br> <p style="color:red; font-size:25px;"> Please do NOT exit full screen until you are done with the experiment. </p>' +
+        '<p style="color:red;"> The experiment will be canceled and your data will be lost if you try to go back or refresh the page at any time during the experiment.</p>' +
+        '<p style="color:red;"> Please rely on your memory and do NOT write anything down throughout the experiment. </p>' +
+        '<br>' +
+        '<p style="color:black;">Click next or use the arrow keys to proceed.</p> </span>'
+    ],
+    on_start: function () {
+        document.body.style.cursor = "default";
+    },
+    show_clickable_nav: true,
+    show_page_number: true,
+    on_finish: function () {
+        document.body.style.cursor = 'none'
+    },
+}
+/*  Displays stimulus from timeline, checks if tgtDir matches correct keypress and sets data.correct
+    pushes trial information to dataOut 
+*/
+var VDACtrial = {
+    type: jsPsychPsychophysics,
+    choices: [keys[0], keys[1]],
+    trial_duration: 1000,      //TESTTESTTEST ORIGINAL 1000
+    stimuli: jsPsych.timelineVariable('stimulus'),
+    data: jsPsych.timelineVariable('data'),
+    canvas_width: wd,
+    canvas_height: ht,
+    on_finish: function (data) {
+        var correct = null;
+        if (data.tgtDir == 'h' && jsPsych.pluginAPI.compareKeys(data.response, keys[0]) || data.tgtDir == 'v' && jsPsych.pluginAPI.compareKeys(data.response, keys[1])) {
+            correct = true
+        } else if (data.tgtDir == 'h' && jsPsych.pluginAPI.compareKeys(data.response, keys[1]) || data.tgtDir == 'v' && jsPsych.pluginAPI.compareKeys(data.response, keys[0])) {
+            correct = false;
+        }
+        data.correct = correct;
+
+        if (data.trialType == 'VDACtest') {
+            dataOut.trialNum.push(trialNum)
+            trialNum++
+        } else {
+            dataOut.trialNum.push(0)
+        }
+
+        if (data.rwdPos == data.tgtPos) {
+            dataOut.rwdType.push(2)
+            data.rwdType = 'high'
+        } else {
+            dataOut.rwdType.push(1)
+            data.rwdType = 'low'
+        }
+
+        dataOut.subID.push(data.subject)
+        dataOut.trialType.push(data.trialType)
+        dataOut.cntBalance.push(data.condition)
+        dataOut.correct.push(data.correct)
+        dataOut.rt.push(data.rt)
+        dataOut.rwdPos.push(data.rwdPos)
+        dataOut.tgtPos.push(data.tgtPos)
+        dataOut.tgtDir.push(data.tgtDir)
+
+        dataOut.colPos.push('')
+        dataOut.colMatch.push('')
+
+    },
+    post_trial_gap: 1000, //TESTTESTTEST ORIGINAL 1000
+}
+
 var rwdTotal = Math.round(0)
 var fdbk = [
     '<p style="font-size:300%;">Correct!</p>',
@@ -45,7 +209,7 @@ var fdbkPts = {
         if (jsPsych.data.getLastTrialData().values()[0].correct == true && jsPsych.data.getLastTrialData().values()[0].rwdType == 'low') {
             attCount.push(0)
             attCount.shift()
-            if (Math.random() < .2) {
+            if (Math.random() < .0) { //TESTTESTTEST
                 rewardTrial = 10
             }
             rwdTotal = rwdTotal + rewardTrial
@@ -53,7 +217,7 @@ var fdbkPts = {
         } else if (jsPsych.data.getLastTrialData().values()[0].correct == true && jsPsych.data.getLastTrialData().values()[0].rwdType == 'high') {
             attCount.push(0)
             attCount.shift()
-            if (Math.random() < .8) {
+            if (Math.random() < 1) { //TESTTESTTEST
                 rewardTrial = 10
             }
             rwdTotal = rwdTotal + rewardTrial
@@ -75,7 +239,15 @@ var fdbkPts = {
     post_trial_gap: 1000,   //TESTTESTTEST
 }
 
-//COUNTDOWNS & BREAKS
+var colArr = ['r', 'g', 'b']
+var dirArr = ['h', 'v']
+var trainArrVDAC = [
+    { stimulus: drawVDACtrain(0, 0, dirArr[0]), data: { trialType: 'VDACtrain', rwdPos: 0, tgtPos: 0, tgtDir: dirArr[0] } },
+    { stimulus: drawVDACtrain(0, 0, dirArr[0]), data: { trialType: 'VDACtrain', rwdPos: 0, tgtPos: 1, tgtDir: dirArr[0] } },
+    { stimulus: drawVDACtrain(0, 0, dirArr[0]), data: { trialType: 'VDACtrain', rwdPos: 0, tgtPos: 2, tgtDir: dirArr[0] } },
+    { stimulus: drawVDACtrain(0, 0, dirArr[0]), data: { trialType: 'VDACtrain', rwdPos: 0, tgtPos: 3, tgtDir: dirArr[0] } }
+];
+
 //Prompt to repeat trials, generates r or c for data.response
 var repeatPrompt = {
     type: jsPsychHtmlKeyboardResponse,
@@ -127,7 +299,7 @@ var attCheck = {
                 dataOut.correct.push('attCheck')
                 dataOut.rt.push('attCheck')
                 dataOut.rwdType.push('attCheck')
-                dataOut.tgtCol.push('attCheck')
+                dataOut.rwdPos.push('attCheck')
                 dataOut.tgtDir.push('attCheck')
                 dataOut.tgtPos.push('attCheck')
                 dataOut.colPos.push('attCheck')
@@ -179,7 +351,7 @@ var brkVDACfdbk = {
         dataOut.correct.push('brk')
         dataOut.rt.push('brk')
         dataOut.rwdType.push('brk')
-        dataOut.tgtCol.push('brk')
+        dataOut.rwdPos.push('brk')
         dataOut.tgtDir.push('brk')
         dataOut.tgtPos.push('brk')
         dataOut.colPos.push('brk')
@@ -200,203 +372,6 @@ var brkVDACcntDwn = {
     },
 }
 
-var resetCounter = {
-    type: 'call-function',
-    func: function () {
-        brkCounter = 0
-        brkCounterEnd = 0
-        attCheck = [0, 0, 0, 0, 0]
-        trialNum = 1
-    }
-}
-
-//TRIAL STIMULI
-var fixationStim = [{
-    obj_type: 'line',
-    startX: 0,
-    startY: 0,
-    line_length: 50,
-    angle: 0,
-    line_width: 5,
-    line_color: 'black',
-    origin_center: true,
-}, {
-    obj_type: 'line',
-    startX: 0,
-    startY: 0,
-    line_length: 50,
-    angle: 90,
-    line_width: 5,
-    line_color: 'black',
-    origin_center: true,
-}]
-
-var fixation = {    //Generates fixation cross for 400 - 1000 ms
-    type: jsPsychPsychophysics,
-    trial_duration: Math.random() * (600 - 400) + 400,
-    stimuli: fixationStim,
-    data: jsPsych.timelineVariable('data'),
-    canvas_width: wd,
-    canvas_height: ht,
-}
-
-
-/*
-Select tgt number
-
-select distractor numb
-*/
-function drawVDACtest(tgtPos, tgtNum, tgtDir) {
-    var cX = [.26 * ht, .0 * ht, -.26 * ht, -.26 * ht, .0 * ht, .26 * ht]
-    var cY = [.15 * ht, .30 * ht, .15 * ht, -.15 * ht, -.30 * ht, -.15 * ht]
-    var cR = [.1 * ht, .09 * ht]
-    //Shuffles the order of colored circles, inserts target color
-
-    var disractArr = [0,1,2]
-    var disractArr = disractArr.filter(a => a !==tgtNum)
-    var disractArr = disractArr[disractArr.length * Math.random() | 0]
-    
-    
-    console.log(disractArr)
-    console.log(newDistractArr)
-
-    var colArr = [disractArr,disractArr,disractArr,disractArr,disractArr];
-    colArr.splice(tgtPos, 0, tgtNum)
-    
-
-    //Inserts circles and lines onto page, adds fixation cross and text. Returns stimulus
-    var arrVDACstim = []
-    arrVDACstim = arrVDACstim.concat(fixationStim); 
-    /*
-    (arrVDACstim.push({
-        obj_type: 'text',
-        startX: 'center',
-        startY: .95 * ht,
-        content: 'Press ' + keys[0] + ' for horizontal or ' + keys[1] + ' for vertical',
-        show_end_time: 2000 // disappear this text
-    })
-    */
-    for (i = 0; i < 6; i++) {
-        arrVDACstim.push({
-            obj_type: 'line',
-            startX: cX[i], 
-            startY: cY[i],
-            line_length: 50,
-            line_width: 5,
-            angle: angle[i],
-            line_color: 'black',
-            origin_center: true,
-        }
-        )
-    }
-    return arrVDACstim
-}
-//Reuses drawVDACtest, adds content for training phase
-function drawVDACtrain(tgtPos, tgtCol, tgtDir) {
-    var arrVDACstim = drawVDACtest(tgtPos, tgtCol, tgtDir)
-    arrVDACstim.push({
-        obj_type: 'text',
-        startX: 'center',
-        startY: .95 * ht,
-        content: 'Press ' + keys[0] + ' for horizontal or ' + keys[1] + ' for vertical',
-        show_end_time: 2000 // disappear this text
-    })
-    return arrVDACstim
-}
-
-//EXPERIMENT PROCEDURE
-// CONVERT THIS INTO PRERENDERED IMAGE FILE
-var VDACinstructions = {
-    type: jsPsychInstructions,
-    pages: [
-        '<div style= "font-size:20px;" <p> <strong> Welcome to the experiment! </strong><br> <p style="color:red; font-size:25px;"> Please do NOT exit full screen until you are done with the experiment. </p>' +
-        '<p style="color:red;"> The experiment will be canceled and your data will be lost if you try to go back or refresh the page at any time during the experiment.</p>' +
-        '<p style="color:red;"> Please rely on your memory and do NOT write anything down throughout the experiment. </p>' +
-        '<br>' +
-        '<p style="color:black;">Click next or use the arrow keys to proceed.</p> </span>'
-        ,
-        'In this task, your job is to detect either a horizontal line or a vertical line among five other diagonal lines.  Each trial will begin with a + symbol in the center of the screen. You should focus your eyes on that + symbol. Then six differently colored circles will appear. Each one will have a line inside of them.' +
-        '<p>Your target—the horizontal or vertical line—will always be inside a red or green circle. You should press <b>' + keys[0] + '</b> if the line is horizontal or <b>' + keys[1] + '</b> if the line is vertical. You will see examples on the following pages.' +
-        '<p>Click next or use the arrow keys to proceed.</p>'
-        ,
-    ],
-    on_start: function () {
-        document.body.style.cursor = "default";
-    },
-    show_clickable_nav: true,
-    show_page_number: true,
-    on_finish: function () {
-        document.body.style.cursor = 'none'
-    },
-}
-/*  Displays stimulus from timeline, checks if tgtDir matches correct keypress and sets data.correct
-    pushes trial information to dataOut 
-*/
-var VDACtrial = {
-    type: jsPsychPsychophysics,
-    choices: [keys[0], keys[1]],
-    trial_duration: 1000,      //TESTTESTTEST ORIGINAL 1000
-    stimuli: jsPsych.timelineVariable('stimulus'),
-    data: jsPsych.timelineVariable('data'),
-    canvas_width: wd,
-    canvas_height: ht,
-    on_finish: function (data) {
-        var correct = null;
-        if (data.tgtDir == 'h' && jsPsych.pluginAPI.compareKeys(data.response, keys[0]) || data.tgtDir == 'v' && jsPsych.pluginAPI.compareKeys(data.response, keys[1])) {
-            correct = true
-        } else if (data.tgtDir == 'h' && jsPsych.pluginAPI.compareKeys(data.response, keys[1]) || data.tgtDir == 'v' && jsPsych.pluginAPI.compareKeys(data.response, keys[0])) {
-            correct = false;
-        }
-        data.correct = correct;
-
-        if (data.trialType == 'VDACtest') {
-            dataOut.trialNum.push(trialNum)
-            trialNum++
-        } else {
-            dataOut.trialNum.push(0)
-        }
-
-        if (data.tgtCol == cntBalance[0]) {
-            dataOut.rwdType.push(2)
-            data.rwdType = 'high'
-        } else {
-            dataOut.rwdType.push(1)
-            data.rwdType = 'low'
-        }
-
-        dataOut.subID.push(data.subject)
-        dataOut.trialType.push(data.trialType)
-        dataOut.cntBalance.push(data.condition)
-        dataOut.correct.push(data.correct)
-        dataOut.rt.push(data.rt)
-        dataOut.tgtCol.push(data.tgtCol)
-        dataOut.tgtPos.push(data.tgtPos)
-        dataOut.tgtDir.push(data.tgtDir)
-
-        dataOut.colPos.push('')
-        dataOut.colMatch.push('')
-
-    },
-    post_trial_gap: 1000, //TESTTESTTEST ORIGINAL 1000
-}
-
-
-var colArr = ['r', 'g', 'b']
-var dirArr = ['h', 'v']
-var trainArrVDAC = [
-    { stimulus: drawVDACtrain(0, colArr[0], dirArr[0]), data: { trialType: 'VDACtrain', tgtCol: colArr[0], tgtPos: 0, tgtDir: dirArr[0] } },
-    { stimulus: drawVDACtrain(1, colArr[0], dirArr[0]), data: { trialType: 'VDACtrain', tgtCol: colArr[0], tgtPos: 1, tgtDir: dirArr[0] } },
-    { stimulus: drawVDACtrain(2, colArr[0], dirArr[0]), data: { trialType: 'VDACtrain', tgtCol: colArr[0], tgtPos: 2, tgtDir: dirArr[0] } },
-    { stimulus: drawVDACtrain(3, colArr[0], dirArr[1]), data: { trialType: 'VDACtrain', tgtCol: colArr[0], tgtPos: 3, tgtDir: dirArr[1] } },
-    { stimulus: drawVDACtrain(4, colArr[0], dirArr[1]), data: { trialType: 'VDACtrain', tgtCol: colArr[0], tgtPos: 4, tgtDir: dirArr[1] } },
-
-    { stimulus: drawVDACtrain(5, colArr[1], dirArr[1]), data: { trialType: 'VDACtrain', tgtCol: colArr[1], tgtPos: 5, tgtDir: dirArr[1] } },
-    { stimulus: drawVDACtrain(0, colArr[1], dirArr[1]), data: { trialType: 'VDACtrain', tgtCol: colArr[1], tgtPos: 0, tgtDir: dirArr[1] } },
-    { stimulus: drawVDACtrain(2, colArr[1], dirArr[1]), data: { trialType: 'VDACtrain', tgtCol: colArr[1], tgtPos: 2, tgtDir: dirArr[1] } },
-    { stimulus: drawVDACtrain(3, colArr[1], dirArr[0]), data: { trialType: 'VDACtrain', tgtCol: colArr[1], tgtPos: 3, tgtDir: dirArr[0] } },
-    { stimulus: drawVDACtrain(5, colArr[1], dirArr[0]), data: { trialType: 'VDACtrain', tgtCol: colArr[1], tgtPos: 5, tgtDir: dirArr[0] } },
-];
-
 //Set brkCounter == X to the number of trials per block. Set brkCounterEnd < Y to the number of blocks per experiment.
 var VDACbreak = {
     timeline: [
@@ -416,32 +391,14 @@ var VDACbreak = {
 }
 
 var testArrVDAC = [];
-for (let repeat = 0; repeat < 8; repeat++) {
-    for (let o = 0; o < 2; o++) {
-        for (let c = 0; c < 2; c++) {
-            for (let i = 0; i < 6; i++) {
-                testArrVDAC.push(
-                    {
-                        stimulus: drawVDACtest(i, colArr[c], dirArr[o]),
-                        data: { trialType: 'VDACtest', tgtCol: colArr[c], tgtPos: i, tgtDir: dirArr[o] }
-                    }
-                )
-            }
-        }
-    }
-}
-for (let o = 0; o < 2; o++) {
-    for (let c = 0; c < 2; c++) {
-        for (let i = 1; i < 5; i = i + 3) {
-            testArrVDAC.push(
-                {
-                    stimulus: drawVDACtest(i, colArr[c], dirArr[o]),
-                    data: { trialType: 'VDACtest', tgtCol: colArr[c], tgtPos: i, tgtDir: dirArr[o] }
-                }
-            )
-        }
-    }
-}
+testArrVDAC.push(
+    { stimulus: drawVDACtest(2, 1, 'v'), data: { trialType: 'VDACtest', tgtPos: 2, rwdPos: 1, tgtDir: 'v' } },
+    { stimulus: drawVDACtest(2, 1, 'v'), data: { trialType: 'VDACtest', tgtPos: 2, rwdPos: 1, tgtDir: 'v' } },
+    { stimulus: drawVDACtest(2, 1, 'v'), data: { trialType: 'VDACtest', tgtPos: 2, rwdPos: 1, tgtDir: 'v' } },
+    { stimulus: drawVDACtest(2, 1, 'v'), data: { trialType: 'VDACtest', tgtPos: 2, rwdPos: 1, tgtDir: 'v' } },
+    { stimulus: drawVDACtest(2, 1, 'v'), data: { trialType: 'VDACtest', tgtPos: 2, rwdPos: 1, tgtDir: 'v' } }
+)
+
 
 //VDAC task with no points feedback, repeats if repeatPrompt is 'r'
 var VDACtraining = {
@@ -450,7 +407,7 @@ var VDACtraining = {
             timeline: [fixation, VDACtrial, fdbkNoPts],
             timeline_variables:
                 trainArrVDAC,
-            randomize_order: true,
+            randomize_order: false,
         },
         repeatPrompt,
     ],
@@ -469,3 +426,12 @@ var VDACtask = {
     randomize_order: true,
 }
 
+var resetCounter = {
+    type: 'call-function',
+    func: function () {
+        brkCounter = 0
+        brkCounterEnd = 0
+        attCheck = [0, 0, 0, 0, 0]
+        trialNum = 1
+    }
+}
