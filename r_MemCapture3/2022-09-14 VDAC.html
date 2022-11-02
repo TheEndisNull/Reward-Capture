@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <script src="jspsych-psychophysics-master/jspsych-dist/dist/jspsych.js"></script>
+    <script src="jspsych-psychophysics-master/jspsych-dist/dist/plugin-html-button-response.js"></script>
+    <script src="jspsych-psychophysics-master/jspsych-dist/dist/plugin-html-keyboard-response.js"></script>
+    <script src="jspsych-psychophysics-master/jspsych-dist/dist/plugin-fullscreen.js"></script>
+    <script src="jspsych-psychophysics-master/jspsych-dist/dist/plugin-preload.js"></script>
+    <script src="jspsych-psychophysics-master/jspsych-dist/dist/plugin-instructions.js"></script>
+    <script src="jspsych-psychophysics-master/jspsych-dist/dist/plugin-survey-likert.js"></script>
+    <script src="jspsych-psychophysics-master/jspsych-dist/dist/plugin-external-html.js"></script>
+    <script src="jspsych-psychophysics-master/jspsych-psychophysics.js"></script>
+    <script src="jspsych-psychophysics-master/jspsych-dist/dist/plugin-call-function.js"></script>
+
+
+    <link rel="stylesheet" href="jspsych-psychophysics-master/jspsych-dist/dist/jspsych.css">
+</head>
+
+<body>
+</body>
+<script>
+
+
+    const jsPsych = initJsPsych({
+        on_finish: function () {
+            jsPsych.data.displayData();
+        }
+    })
+
+    //sets reusable variables for screen width and height that avoids scrollbals
+    var wd = window.innerWidth * .95
+    var ht = wd * (9 / 16)
+    var keys = ['z', 'm']
+
+
+
+
+
+    document.body.style.backgroundColor = 'gray';
+    const date = new Date();
+    var stDate = date.getMonth() + '-' + date.getDate();
+    var subID = jsPsych.randomization.randomID(3);
+    var cntBalance = ['r'];
+    var fileName = cntBalance + '-' + stDate + '-' + subID
+    var trialNum = 1
+    var wd = window.innerWidth * .95
+    var ht = window.innerHeight * .95
+
+    jsPsych.data.addProperties(
+        {
+            subject: subID,
+            condition: cntBalance
+        }
+    )
+
+    var dataOut = {
+        subID: [],
+        trialType: [],
+        trialNum: [],
+        cntBalance: [],
+        correct: [],
+        rt: [],
+        rwdType: [], //reward type: high/low/none
+        tgtCol: [], //trarget color: red/green/black
+        tgtDir: [], //target direction: horizontal/vertical
+        tgtPos: [], //position of target item: 1, 2, 3, none
+        colPos: [], //position of colored item
+        colMatch: [] //does colPos match tgtPox?
+    }
+
+    var startup = {
+        timeline: [{
+            type: jsPsychFullscreen,
+            fullscreen_mode: true
+        }, {
+            type: jsPsychPreload,
+            auto_preload: true
+        }]
+    }
+
+
+    
+    const text_object1 = {
+        obj_type: 'text',
+        startX: 200,
+        startY: 400,
+        content: '1',
+        font: "22px 'Arial'",
+        text_color: 'white',
+    }
+
+
+    const trial = {
+        type: jsPsychPsychophysics,
+        stimuli: [text_object1],
+    }
+
+    jsPsych.run([startup,trial])
+
+
+</script>
+
+</html>
