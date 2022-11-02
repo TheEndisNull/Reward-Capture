@@ -1,0 +1,497 @@
+---
+title: "Data Analysis"
+author: 'Jonathan Yuquimpo'
+date: '01-11-21'
+output: html_document
+---
+
+```{r include=FALSE}
+# Package names
+packages <- c('tidyverse', 'readr')
+# Install packages not yet installed
+installed_packages <- packages %in% rownames(installed.packages())
+if (any(installed_packages == FALSE)) {
+  install.packages(packages[!installed_packages])
+}
+# Packages loading
+invisible(lapply(packages, library, character.only = TRUE))
+rm(packages, installed_packages)
+
+data <- read_csv(
+  "data/merged_file.csv",
+  col_types = cols(
+    cntBalance = col_factor(levels = c("r",
+                                       "g")),
+    correct = col_logical(),
+    rt = col_double(),
+    rwdType = col_factor(levels = c("0",
+                                    "1", "2")),
+    tgtCol = col_skip(),
+    tgtDir = col_skip(),
+    #tgtPos = col_factor(levels = c("0",
+    #                               "1", "2", "3", "4", "5")),
+    #colPos = col_factor(levels = c("0",
+    #                               "1", "2", "3")),
+    ...13 = col_skip()
+  ),
+  na = "empty"
+)
+
+`%!in%` <- Negate(`%in%`)
+
+data <- tibble::as_tibble(data)
+data <- filter(data,
+               trialType == 'RSVPtest',
+               subID %!in%  c('brk','0tt','a0v','c90','rp9','tx3','y95','yz3'),
+               rt > 250 #quantile(data$rt, 0.025, na.rm = TRUE)
+               ) %>%
+  select(subID, correct, rt, rwdType, tgtPos, colPos, colMatch)
+data$subID <- as.factor(data$subID)
+```
+
+## Raw Data
+Snippet of data file used for analysis.  
+rt: response time  
+rwdType: associated value of colored item (if any)  
+
+0. No value (black) 
+1. Low value
+2. High value
+
+tgtPos: serial position of target item
+
+0. 1st position
+1. 2nd position
+2. 3rd position
+3. New item (for false alarms)
+
+colPos: serial position of the target item
+
+0. 1st position  
+1. 2nd position  
+2. 3rd position  
+3. New item (for false alarms)  
+
+colMatch: Does the color item match the target item?  
+
+0. color item present  
+1. color item present but is not mached with target
+2. color item present and is matched with target
+
+Add segment about trial proportions
+XXX trials. XX of them were new, 
+```{r Data output, echo=FALSE}
+print(data, n=20)
+```
+
+```{r fig.width=10, include=FALSE}
+
+rwdName = c('Low', 'High', 'None')
+rwdArr = c(1, 2, 0)
+
+
+for (i in 1:2) {
+  assign(
+    paste0('congruent', rwdName[i]),
+    bind_cols(
+      filter(data,
+             rwdType == rwdArr[i],
+             tgtPos == rwdArr[i],
+             correct == T) %>%
+        group_by(subID, .drop = F) %>%
+        summarize(hits = n()) %>%
+        select(subID, hits),
+      filter(data,
+             rwdType == rwdArr[i],
+             tgtPos == rwdArr[i],
+             correct == F) %>%
+        group_by(subID, .drop = F) %>%
+        summarize(miss = n(),
+                  rt = median(rt)) %>%
+        select(miss),
+      filter(data,
+             rwdType == rwdArr[i],
+             tgtPos == 3,
+             correct == F) %>%
+        group_by(subID, .drop = F) %>%
+        summarize(fAlm = n(), #fAlm = false alarm
+                  rt = median(rt)) %>%
+        select(fAlm),
+      filter(data,
+             rwdType == rwdArr[i],
+             tgtPos == 3,
+             correct == T) %>%
+        group_by(subID, .drop = F) %>%
+        summarize(rejt = n(), #rejt = rejections
+                  rt = median(rt)) %>%
+        select(rejt)
+    ) %>%
+      mutate (
+        hitSum = hits + miss,
+        hitRate = hits / hitSum,
+        HR = ifelse(
+          hitRate == 1,
+          (hits - 0.5) / hitSum,
+          ifelse(hitRate == 0,
+                 (hits + 0.5) / hitSum,
+                 hitRate)
+        ),
+        fAlmSum = fAlm + rejt,
+        fAlmRate = fAlm / fAlmSum,
+        FA = ifelse(
+          fAlmRate == 1,
+          (fAlm - 0.5) / fAlmSum,
+          ifelse(fAlmRate == 0,
+                 (fAlm + 0.5) / fAlmSum,
+                 fAlmRate)
+        ),
+        dprime = qnorm(HR) - qnorm(FA),
+        criterion = -(qnorm(HR) + qnorm(FA)) / 2,
+        rwd = as.factor(replicate(n = n(), rwdArr[i]))
+      )
+  )
+}
+
+assign(
+  paste0('congruent', rwdName[3]),
+  bind_cols(
+    filter(data,
+           rwdType == rwdArr[3],
+           tgtPos ==rwdArr[i],
+           correct == T) %>%
+      group_by(subID, .drop = F) %>%
+      summarize(hits = n()) %>%
+      select(subID, hits),
+    filter(data,
+           rwdType == rwdArr[3],
+           tgtPos ==rwdArr[i],
+           correct == F) %>%
+      group_by(subID, .drop = F) %>%
+      summarize(miss = n(),
+                rt = median(rt)) %>%
+      select(miss),
+    filter(data,
+           rwdType == rwdArr[3],
+           tgtPos == 3,
+           correct == F) %>%
+      group_by(subID, .drop = F) %>%
+      summarize(fAlm = n(), #fAlm = false alarm
+                rt = median(rt)) %>%
+      select(fAlm),
+    filter(data,
+           rwdType == rwdArr[3],
+           tgtPos == 3,
+           correct == T) %>%
+      group_by(subID, .drop = F) %>%
+      summarize(rejt = n(), #rejt = rejections
+                rt = median(rt)) %>%
+      select(rejt)
+  ) %>%
+    mutate (
+      hitSum = hits + miss,
+      hitRate = hits / hitSum,
+      HR = ifelse(
+        hitRate == 1,
+        (hits - 0.5) / hitSum,
+        ifelse(hitRate == 0,
+               (hits + 0.5) / hitSum,
+               hitRate)
+      ),
+      fAlmSum = fAlm + rejt,
+      fAlmRate = fAlm / fAlmSum,
+      FA = ifelse(
+        fAlmRate == 1,
+        (fAlm - 0.5) / fAlmSum,
+        ifelse(fAlmRate == 0,
+               (fAlm + 0.5) / fAlmSum,
+               fAlmRate)
+      ),
+      dprime = qnorm(HR) - qnorm(FA),
+      criterion = -(qnorm(HR) + qnorm(FA)) / 2,
+      rwd = as.factor(replicate(n = n(), rwdArr[3]))
+    )
+)
+```
+
+## Filtered Data
+For each participant, the number of hits, misses, false alarms, and rejections is totaled and used to compute hit rate and false alarm rate. The 1/2N correction is then applied to hit and false alarm rate which yields the HR and FA columns. Those values are then used to compute dprime and criterion for each reward condition (rwd=0, 1, or 2)
+```{r echo=FALSE, R.options = list(width = 200)}
+congruentLow
+congruentHigh
+congruentNone
+```
+
+## Computations for graphs
+For each variable, standard error is computed within-subjects using the Rmisc package. [See here for more info](http://www.cookbook-r.com/Graphs/Plotting_means_and_error_bars_(ggplot2)/#understanding-within-subjects-error-bars)
+
+```{r include=FALSE}
+library(Rmisc)
+#install.packages('Rmisc')
+#Hit Rate====
+longFormData <- bind_rows(congruentHigh, congruentLow, congruentNone)
+hit_rate <-
+  summarySEwithin(
+    longFormData,
+    measurevar = 'HR',
+    withinvars = 'rwd',
+    idvar = 'subID'
+  ) %>%
+  mutate(condition = as.factor(c(replicate(3, "Hit Rate"))),
+         mean = HR)
+
+false_alarm_rate <-
+  summarySEwithin(
+    longFormData,
+    measurevar = 'FA',
+    withinvars = 'rwd',
+    idvar = 'subID'
+  ) %>%
+  mutate(condition = as.factor(c(replicate(3, "False Alarm Rate"))),
+         mean = FA)
+
+FA_HR_df <- bind_rows(hit_rate, false_alarm_rate) %>%
+  select(rwd,mean,sd,se,ci,condition) %>%
+  print()
+
+dprime <-
+  summarySEwithin(
+    longFormData,
+    measurevar = 'dprime',
+    withinvars = 'rwd',
+    idvar = 'subID'
+  )
+
+criterion <-
+  summarySEwithin(
+    longFormData,
+    measurevar = 'criterion',
+    withinvars = 'rwd',
+    idvar = 'subID'
+  )
+```
+
+```{r echo=FALSE}
+FA_HR_df
+dprime
+criterion
+```
+
+```{r include=FALSE}
+width = .8
+dodgeWidth = .85
+errWidth = .4
+errdodgeWidth = .85
+
+
+HR_FA_bar <- ggplot(FA_HR_df, aes(
+  y = mean,
+  x = condition,
+  fill = factor(rwd),
+)) +
+  geom_bar(
+    stat = "identity",
+    width = width,
+    position = position_dodge(width = dodgeWidth),
+    color = 'black'
+  ) +
+  
+  geom_errorbar(
+    aes(ymin = mean - se,
+        ymax = mean + se),
+    width = errWidth,
+    position = position_dodge(width = errdodgeWidth),
+    colour = "azure4",
+    size = 1
+  ) +
+  
+  coord_cartesian(ylim = c(.1, .9)) +
+  
+  labs(y = 'Proportion',
+       x = 'Reward') +
+  
+  scale_fill_manual(
+    values = c('2' = "red",
+               '1' = "green",
+               '0' = "black"),
+    name = 'Reward Condition',
+    labels = c('High', 'Low', 'None')
+  ) +
+  theme_bw()+
+  theme(
+    legend.position = 'none',
+    axis.text = element_text(size = 24),
+    axis.title = element_text(size = 32),
+    axis.line = element_line(colour = "black"),
+    panel.grid.major.x = element_blank(),
+    panel.border = element_blank(),
+    panel.background = element_blank()
+  ) 
+
+dprime_bar <- ggplot(dprime,
+                     aes(y = dprime,
+                         x = rwd,
+                         fill = rwd)) +
+  
+  geom_bar(
+    stat = "identity",
+    width = width,
+    position = position_dodge(dodgeWidth),
+    color = 'black'
+  ) +
+  
+  geom_errorbar(
+    aes(ymin = dprime - se,
+        ymax = dprime + se),
+    width = errWidth,
+    position = position_dodge(errdodgeWidth),
+    colour = "azure4",
+    size = 1
+  ) +
+  
+  #coord_cartesian(ylim = c(1.8, 2.2)) +
+  #coord_cartesian(ylim = c(1.25, 2.25)) +
+  
+  
+  labs(y = expression(paste("Discriminability ",italic("d\'"))),
+       x = '') +
+  
+  scale_fill_manual(values = c('2' = "red",
+                               '1' = "green",
+                               '0' = "black")) +
+  
+  scale_x_discrete(labels = c(
+    "2" = "High",
+    "1" = "Low",
+    "0" = "Control"
+  )) +
+  
+  
+  theme_bw()+
+  theme(
+    legend.position = 'none',
+    axis.text = element_text(size = 24),
+    axis.title = element_text(size = 32),
+    axis.line = element_line(colour = "black"),
+    panel.grid.major.x = element_blank(),
+    panel.border = element_blank(),
+    panel.background = element_blank()
+  ) 
+
+criterion_bar <- ggplot(criterion,
+                        aes(
+                          y = criterion,
+                          x = interaction(rwd),
+                          group = rwd,
+                          fill = rwd
+                        )) +
+  
+  geom_bar(
+    stat = "identity",
+    width = width,
+    position = position_dodge(dodgeWidth),
+    color = 'black'
+  ) +
+  #coord_cartesian(ylim = c(-.25, .2)) +
+  
+  geom_errorbar(
+    aes(ymin = criterion - se,
+        ymax = criterion + se),
+    width = errWidth,
+    position = position_dodge(errdodgeWidth),
+    colour = "azure4",
+    size = 1
+  ) +
+  
+  labs(y = expression(paste("Criterion ",italic("c"))),
+       x = '') +
+  
+  scale_fill_manual(values = c('2' = "red",
+                               '1' = "green",
+                               '0' = "black")) +
+  
+  scale_x_discrete(labels = c(
+    "2" = "High",
+    "1" = "Low",
+    "0" = "Control"
+  )) +
+  
+  
+  theme_bw()+
+  theme(
+    legend.position = 'none',
+    axis.text = element_text(size = 24),
+    axis.title = element_text(size = 32),
+    axis.line = element_line(colour = "black"),
+    panel.grid.major.x = element_blank(),
+    panel.border = element_blank(),
+    panel.background = element_blank()
+  ) 
+
+```
+
+```{r echo=FALSE}
+HR_FA_bar
+dprime_bar
+criterion_bar
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

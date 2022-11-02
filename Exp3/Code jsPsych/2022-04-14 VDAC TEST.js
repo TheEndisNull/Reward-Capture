@@ -243,9 +243,9 @@ var colArr = ['r', 'g', 'b']
 var dirArr = ['h', 'v']
 var trainArrVDAC = [
     { stimulus: drawVDACtrain(0, 0, dirArr[0]), data: { trialType: 'VDACtrain', rwdPos: 0, tgtPos: 0, tgtDir: dirArr[0] } },
-    { stimulus: drawVDACtrain(0, 0, dirArr[0]), data: { trialType: 'VDACtrain', rwdPos: 0, tgtPos: 1, tgtDir: dirArr[0] } },
-    { stimulus: drawVDACtrain(0, 0, dirArr[0]), data: { trialType: 'VDACtrain', rwdPos: 0, tgtPos: 2, tgtDir: dirArr[0] } },
-    { stimulus: drawVDACtrain(0, 0, dirArr[0]), data: { trialType: 'VDACtrain', rwdPos: 0, tgtPos: 3, tgtDir: dirArr[0] } }
+    { stimulus: drawVDACtrain(1, 1, dirArr[0]), data: { trialType: 'VDACtrain', rwdPos: 1, tgtPos: 1, tgtDir: dirArr[0] } },
+    { stimulus: drawVDACtrain(2, 2, dirArr[0]), data: { trialType: 'VDACtrain', rwdPos: 2, tgtPos: 2, tgtDir: dirArr[0] } },
+    { stimulus: drawVDACtrain(3, 3, dirArr[0]), data: { trialType: 'VDACtrain', rwdPos: 3, tgtPos: 3, tgtDir: dirArr[0] } }
 ];
 
 //Prompt to repeat trials, generates r or c for data.response
@@ -392,11 +392,11 @@ var VDACbreak = {
 
 var testArrVDAC = [];
 testArrVDAC.push(
-    { stimulus: drawVDACtest(2, 1, 'v'), data: { trialType: 'VDACtest', tgtPos: 2, rwdPos: 1, tgtDir: 'v' } },
-    { stimulus: drawVDACtest(2, 1, 'v'), data: { trialType: 'VDACtest', tgtPos: 2, rwdPos: 1, tgtDir: 'v' } },
-    { stimulus: drawVDACtest(2, 1, 'v'), data: { trialType: 'VDACtest', tgtPos: 2, rwdPos: 1, tgtDir: 'v' } },
-    { stimulus: drawVDACtest(2, 1, 'v'), data: { trialType: 'VDACtest', tgtPos: 2, rwdPos: 1, tgtDir: 'v' } },
-    { stimulus: drawVDACtest(2, 1, 'v'), data: { trialType: 'VDACtest', tgtPos: 2, rwdPos: 1, tgtDir: 'v' } }
+    { stimulus: drawVDACtest(1, 1, 'v'), data: { trialType: 'VDACtest', tgtPos: 1, rwdPos: 1, tgtDir: 'v' } },
+    { stimulus: drawVDACtest(1, 1, 'v'), data: { trialType: 'VDACtest', tgtPos: 1, rwdPos: 1, tgtDir: 'v' } },
+    { stimulus: drawVDACtest(1, 1, 'v'), data: { trialType: 'VDACtest', tgtPos: 1, rwdPos: 1, tgtDir: 'v' } },
+    { stimulus: drawVDACtest(1, 1, 'v'), data: { trialType: 'VDACtest', tgtPos: 1, rwdPos: 1, tgtDir: 'v' } },
+    { stimulus: drawVDACtest(1, 1, 'v'), data: { trialType: 'VDACtest', tgtPos: 1, rwdPos: 1, tgtDir: 'v' } }
 )
 
 
