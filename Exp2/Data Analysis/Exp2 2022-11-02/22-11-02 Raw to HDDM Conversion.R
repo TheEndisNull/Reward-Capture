@@ -4,7 +4,7 @@
 setwd(dirname(rstudioapi::getSourceEditorContext()$path))
 lapply(c("tidyverse"),
   require,
-  character.only = T
+  character.only = TRUE
 )
 
 library(readr)
