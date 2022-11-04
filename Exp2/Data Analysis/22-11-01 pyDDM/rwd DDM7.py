@@ -20,7 +20,7 @@ from pyddm import Sample
 import pandas
 with open("HDDM_data4.csv", "r") as f:
     df_rt = pandas.read_csv(f)
-
+#df_rt = df_rt[df_rt["subID"] == 0]
 print(df_rt)
 
 df_sample = Sample.from_pandas_dataframe(
@@ -29,23 +29,30 @@ df_sample = Sample.from_pandas_dataframe(
 
 class DriftReward(ddm.model.Drift):
     name = "Drift Depends on reward condition"
-    required_parameters = ["driftRwd", "driftPos"]
-    required_conditions = ["rwdType", "colMatch"]
+    required_parameters = ["Dcontrol", "Dhigh", "Dlow"]
+    required_conditions = ["rwdType"]
 
     def get_drift(self, conditions, **kwargs):
-        position = self.driftPos * conditions["colMatch"]
-        return self.driftRwd * conditions["rwdType"] * position
+        if conditions["rwdType"] == 0:
+            return self.Dcontrol
+        elif conditions["rwdType"] == 1:
+            return self.Dlow
+        elif conditions["rwdType"] == 2:
+            return self.Dhigh
 
 
 class BoundCustom(ddm.model.Bound):
     name = "Boundary Depends on Reward Condition"
-    required_parameters = ["boundRwd", "boundPos"]
-    required_conditions = ["rwdType", "colMatch"]
+    required_parameters = ["Bcontrol", "Bhigh", "Blow"]
+    required_conditions = ["rwdType"]
 
     def get_bound(self, conditions, **kwargs):
-        position = self.boundPos * conditions["colMatch"]
-        return self.boundRwd * conditions["rwdType"] + position + .1
-
+        if conditions["rwdType"] == 0:
+            return self.Bcontrol
+        elif conditions["rwdType"] == 1:
+            return self.Blow
+        elif conditions["rwdType"] == 2:
+            return self.Bhigh
 
 class ICPointSideBias(InitialCondition):
     name = "A starting point with a left or right bias."
@@ -67,19 +74,26 @@ class ICPointSideBias(InitialCondition):
 # Model to apply parameters to data
 model_df = Model(name="My data. Drift varies with reward",
                  drift=DriftReward(
-                     driftRwd=Fittable(minval=-5, maxval=5),
-                     driftPos=Fittable(minval=-5, maxval=5)),
+                     Dcontrol=Fittable(minval=-5, maxval=5),
+                     Dlow=Fittable(minval=-5, maxval=5),
+                     Dhigh=Fittable(minval=-5, maxval=5)
+                 ),
+                 bound=BoundCustom(
+                     Bcontrol=Fittable(minval=.3, maxval=5),
+                     Blow=Fittable(minval=.3, maxval=5),
+                     Bhigh=Fittable(minval=.3, maxval=5)
+                 ),
                  #bound=BoundConstant(B=Fittable(minval=0, maxval=1.5)),
-                 IC=ICPointSideBias(old_new=Fittable(minval=-1, maxval=1)),
+                 #IC=ICPointSideBias(old_new=Fittable(minval=0, maxval=1)),
                  #bound=BoundConstant(B=Fittable(minval=-4, maxval=4)),
                  # bound=BoundCustom(
                  #    boundRwd=Fittable(minval=0, maxval=20),
                  #    boundPos=Fittable(minval=0, maxval=20)),
-                 overlay=OverlayChain(overlays=[OverlayNonDecision(nondectime=Fittable(minval=0, maxval=.4)),
+                 overlay=OverlayChain(overlays=[OverlayNonDecision(nondectime=Fittable(minval=0, maxval=5)),
                                                 OverlayPoissonMixture(pmixturecoef=.02,
                                                                       rate=1)]),
                  dx=.01, dt=.01, T_dur=2.5)
-
+#seems like Bound can't be 0
 fit_model_rs = fit_adjust_model(
     sample=df_sample, model=model_df, lossfunction=LossRobustBIC, verbose=False)
 # seems to cause some errors, change pyddm.plot with another variable
@@ -89,5 +103,5 @@ pyddm.plot.plot_fit_diagnostics(model=fit_model_rs, sample=df_sample)
 # plt.savefig("roitman-fit.png")
 plt.show()
 ##
-pyddm.plot.model_gui(model=fit_model_rs, conditions={"rwdType": [
-                     1, 2], "colMatch": [1, 2], "tgtPos": [0, 1]}, sample=df_sample)
+pyddm.plot.model_gui(model=fit_model_rs, conditions={
+                     "rwdType": [0, 1, 2], "tgtPos": [0, 1] }, sample=df_sample)

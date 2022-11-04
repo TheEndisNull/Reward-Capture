@@ -19,8 +19,6 @@ data$subID <- as.factor(data$subID)
 congArr <- c("incongruent", "congruent")
 rwdName <- c("Low", "High", "None")
 
-i <- 1||2
-
 for (i in 1:2) { # reward
     for (j in 1:2) { # congruence
         assign(
@@ -274,7 +272,7 @@ dprime_bar <- ggplot(
         size = 1
     ) +
 
-    # coord_cartesian(ylim = c(1.8, 2.2)) +
+    coord_cartesian(ylim = c(1.2, 1.6)) +
     # coord_cartesian(ylim = c(1.25, 2.25)) +
 
     labs(
@@ -326,7 +324,7 @@ criterion_bar <- ggplot(
         position = position_dodge(dodgeWidth),
         color = "black"
     ) +
-    # coord_cartesian(ylim = c(-.25, .2)) +
+     coord_cartesian(ylim = c(-.05, .1)) +
 
     geom_errorbar(
         aes(
@@ -366,9 +364,20 @@ criterion_bar <- ggplot(
 
 
 
+HR_FA_bar
+dprime_bar
+criterion_bar
 
 
-
+  ggsave(
+    criterion_bar,
+    filename = "test.png",
+    dpi = 300,
+    type = "cairo",
+    width = 10,
+    height = 7.5,
+    units = "in"
+  )
 
 
 
