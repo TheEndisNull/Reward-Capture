@@ -20,9 +20,9 @@ from pyddm import Sample
 import pandas
 with open("HDDM_data4.csv", "r") as f:
     df_rt = pandas.read_csv(f)
+df_rt = df_rt[df_rt["subID"] == 0]
 
 print(df_rt)
-
 df_sample = Sample.from_pandas_dataframe(
     df_rt, rt_column_name="rt", correct_column_name="correct")
 
