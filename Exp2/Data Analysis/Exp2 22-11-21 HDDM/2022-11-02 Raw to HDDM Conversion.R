@@ -30,11 +30,13 @@ data <- filter(
   trialType == "RSVPtest",
   rt > quantile(data$rt, 0.025, na.rm = TRUE)
 ) %>%
-  select(subID, rt, correct, tgtPos, rwdType, colMatch)
-data$subID <- as.numeric(factor(data$subID,
-  levels = unique(data$subID)
+  select(subID, rt, correct, tgtPos, rwdType, colMatch) %>%
+  rename(subj_idx = subID, response = correct)
+data$subj_idx <- as.numeric(factor(data$subj_idx,
+  levels = unique(data$subj_idx)
 )) - 1
-data$correct <- as.integer(as.logical(data$correct))
+data$correct <- as.integer(as.logical(data$response))
+
 
 data <- mutate(data,
 tgtPos = ifelse(tgtPos==3, 1, 0),
@@ -44,14 +46,11 @@ rt = rt / 1000
 print(data, n = 500)
 write.csv(data, file = "HDDM_data.csv", row.names = FALSE)
 
-test <- read_csv(
-  "HDDM_data4.csv")
-
-dataMatching <- filter(test, colMatch==2)
+dataMatching <- filter(data, colMatch==2)
 write.csv(dataMatching, file = "HDDM Matching.csv", row.names = FALSE)
 
 
-dataNonMatching <- filter(test, colMatch==1)
+dataNonMatching <- filter(data, colMatch==1 & tgtPos==0)
 write.csv(dataNonMatching, file = "HDDM Non-Matching.csv", row.names = FALSE)
 
 
