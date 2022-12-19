@@ -8,7 +8,7 @@ Created on Wed Nov 30 00:40:37 2022
 import matplotlib.pyplot as plt
 import hddm
 
-data = hddm.load_csv('HDDM Non-Matching.csv')
+data = hddm.load_csv('HDDM HL v N Non-matching.csv')
 data = hddm.utils.flip_errors(data)
 
 fig = plt.figure()
@@ -18,14 +18,14 @@ for i, subj_data in data.groupby('subj_idx'):
 plt.show()
 #print(dmatrix("C(rwdType)", data.head(10)))
 
-m = hddm.HDDMRegressor(data, "v ~ C(rwdType, Treatment(1))")
+m = hddm.HDDMRegressor(data, "v ~ C(rwdType, Treatment(0))")
 #the use of C() indicates a categorical variable that will be dummy coded
 #treatment(x) specifies which categorical variable is the "intercept" 
 m.find_starting_values()
-m.sample(5000, burn=20, dbname='traces.db', db='pickle')
-m.save('Within RwdType Drift Rate: Non-matching target and color')
+m.sample(20, burn=2, dbname='traces.db', db='pickle')
+m.save('Drift Rate HL v N Matching tgt&col')
 
-v_1, v_2 = m.nodes_db.loc[["v_Intercept", "v_C(rwdType, Treatment(1))[T.2]"], 'node']
+v_1, v_2 = m.nodes_db.loc[["v_Intercept", "v_C(rwdType, Treatment(0))[T.1]"], 'node']
 
 print("P_v(High > low) = ", (v_2.trace() > 0).mean())
 
@@ -37,5 +37,5 @@ m.plot_posteriors()
 hddm.analyze.plot_posterior_nodes([v_1, v_2])
 plt.xlabel('drift-rate')
 plt.ylabel('Posterior probability')
-plt.title('Group mean posteriors of within-subject drift-rate effects. Target item IS NOT colored')
+plt.title('Group mean posteriors of within-subject drift-rate effects. Colored items are targets')
 plt.show()

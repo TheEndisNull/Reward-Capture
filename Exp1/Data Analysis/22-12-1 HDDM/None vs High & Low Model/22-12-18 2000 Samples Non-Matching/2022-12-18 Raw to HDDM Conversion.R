@@ -73,8 +73,10 @@ data$response <- as.integer(data$response) - 1
 
 
 matchingHLvN <- filter(data, rwdType==0 & tgtPos!=0 | rwdType==1 & colMatch==2)
-write.csv(matchingHLvN, file = "HDDM HL v N.csv", row.names = FALSE)
+write.csv(matchingHLvN, file = "HDDM HL v N Matching.csv", row.names = FALSE)
 
+nonMatchingHLvN <- filter(data, rwdType==0 & tgtPos!=0 | rwdType==1 & colMatch==1 & tgtPos!=0)
+write.csv(nonMatchingHLvN, file = "HDDM HL v N Non-matching.csv", row.names = FALSE)
 
 
 dataMatching <- filter(data, colMatch == 2)
