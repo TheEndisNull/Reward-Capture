@@ -22,7 +22,7 @@ m = hddm.HDDMRegressor(data, "v ~ C(rwdType, Treatment(0))")
 #the use of C() indicates a categorical variable that will be dummy coded
 #treatment(x) specifies which categorical variable is the "intercept" 
 m.find_starting_values()
-m.sample(20, burn=2, dbname='traces.db', db='pickle')
+m.sample(2000, burn=20, dbname='traces.db', db='pickle')
 m.save('Drift Rate HL v N Matching tgt&col')
 
 v_1, v_2 = m.nodes_db.loc[["v_Intercept", "v_C(rwdType, Treatment(0))[T.1]"], 'node']
