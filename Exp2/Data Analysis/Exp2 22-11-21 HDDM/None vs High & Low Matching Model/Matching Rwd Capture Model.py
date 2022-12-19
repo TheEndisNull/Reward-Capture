@@ -5,9 +5,7 @@ Created on Wed Nov 30 00:40:37 2022
 @author: Jonathan
 """
 
-import pandas as pd
 import matplotlib.pyplot as plt
-from patsy import dmatrix
 import hddm
 
 data = hddm.load_csv('HDDM HL v N Matching.csv')
@@ -25,10 +23,10 @@ m = hddm.HDDMRegressor(data, "v ~ C(colMatch, Treatment(0))")
 m.sample(2000, burn=20, dbname='traces.db', db='pickle')
 m.save('Drift Rate HL v N Matching tgt&col')
 
-v_1, v_2 = m.nodes_db.loc[["v_Intercept", "v_C(rwdType, Treatment(0))[T.2]"], 'node']
+v_1, v_2 = m.nodes_db.loc[["v_Intercept", "v_C(colMatch, Treatment(0))[T.2]"], 'node']
 
 #Treatment(x)[T.y], Treatment(x)[T.z] to indicate the remaining conditions
-
+print("P_v(High > Low) = ", (v_2.trace() > 0).mean())
 #versus having a continuous variable
 m.plot_posteriors()
 hddm.analyze.plot_posterior_nodes([v_1, v_2])

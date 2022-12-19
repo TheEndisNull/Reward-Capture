@@ -1,4 +1,4 @@
-"subID","rt","correct","tgtPos","rwdType","colMatch"
+"subj_idx","rt","response","tgtPos","rwdType","colMatch"
 0,0.822,1,0,2,2
 0,0.716,1,0,2,2
 0,0.667,1,0,0,0
