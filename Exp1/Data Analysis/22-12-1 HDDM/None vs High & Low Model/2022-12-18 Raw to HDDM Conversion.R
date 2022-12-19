@@ -30,7 +30,7 @@ data <- read_csv(
       rwdType, c(
         "none" = "0",
         "low" = "1",
-        "high" = "2"
+        "high" = "1"
       )
     )),
     tgtPos = as.integer(str_replace_all(
@@ -49,8 +49,8 @@ data <- read_csv(
         "3rd" = "3"
       )
     ))
-  ) %>%
-  filter(trialType == "RSVPtest",
+  ) 
+data <- filter(data,trialType == "RSVPtest",
          rt > quantile(data$rt, 0.025, na.rm = TRUE)) %>%
   select(subj_idx, rt, response, rwdType, tgtPos, colPos)
 
@@ -71,6 +71,9 @@ data$subj_idx <- as.numeric(factor(data$subj_idx,
 
 data$response <- as.integer(data$response) - 1
 
+
+matchingHLvN <- filter(data, rwdType==0 & tgtPos!=0 | rwdType==1 & colMatch==2)
+write.csv(matchingHLvN, file = "HDDM HL v N.csv", row.names = FALSE)
 
 
 
