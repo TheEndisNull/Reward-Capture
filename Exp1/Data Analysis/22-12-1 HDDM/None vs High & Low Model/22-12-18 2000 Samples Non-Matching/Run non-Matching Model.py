@@ -23,7 +23,7 @@ m = hddm.HDDMRegressor(data, "v ~ C(rwdType, Treatment(0))")
 #treatment(x) specifies which categorical variable is the "intercept" 
 m.find_starting_values()
 m.sample(20, burn=2, dbname='traces.db', db='pickle')
-m.save('Drift Rate HL v N Matching tgt&col')
+m.save('Drift Rate HL v N Non-matching tgt&col')
 
 v_1, v_2 = m.nodes_db.loc[["v_Intercept", "v_C(rwdType, Treatment(0))[T.1]"], 'node']
 
@@ -37,5 +37,5 @@ m.plot_posteriors()
 hddm.analyze.plot_posterior_nodes([v_1, v_2])
 plt.xlabel('drift-rate')
 plt.ylabel('Posterior probability')
-plt.title('Group mean posteriors of within-subject drift-rate effects. Colored items are targets')
+plt.title('Group mean posteriors of within-subject drift-rate effects. Colored items are not targets')
 plt.show()
