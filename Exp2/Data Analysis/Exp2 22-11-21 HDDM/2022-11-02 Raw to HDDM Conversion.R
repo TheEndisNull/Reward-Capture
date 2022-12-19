@@ -30,13 +30,11 @@ data <- filter(
   trialType == "RSVPtest",
   rt > quantile(data$rt, 0.025, na.rm = TRUE)
 ) %>%
-  select(subID, rt, correct, tgtPos, rwdType, colMatch) %>%
-  rename(subj_idx = subID, response = correct)
-data$subj_idx <- as.numeric(factor(data$subj_idx,
-  levels = unique(data$subj_idx)
+  select(subID, rt, correct, tgtPos, rwdType, colMatch)
+data$subID <- as.numeric(factor(data$subID,
+  levels = unique(data$subID)
 )) - 1
-data$correct <- as.integer(as.logical(data$response))
-
+data$correct <- as.integer(as.logical(data$correct))
 
 data <- mutate(data,
 tgtPos = ifelse(tgtPos==3, 1, 0),
@@ -46,11 +44,18 @@ rt = rt / 1000
 print(data, n = 500)
 write.csv(data, file = "HDDM_data.csv", row.names = FALSE)
 
-dataMatching <- filter(data, colMatch==2)
+matchingHLvN <- filter(data, rwdType==0 & tgtPos==0 | colMatch==2)
+write.csv(matchingHLvN, file ="HDDM HL v N Matching.csv", row.names = FALSE)
+
+NonMatchingHLvN <- filter(data, rwdType==0 & tgtPos==0 | colMatch==1 & tgtPos==0)
+write.csv(NonMatchingHLvN, file ="HDDM HL v N Non-Matching.csv", row.names = FALSE)
+
+#test was accidentally deleted, be sure to recover it
+dataMatching <- filter(test, colMatch==2)
 write.csv(dataMatching, file = "HDDM Matching.csv", row.names = FALSE)
 
 
-dataNonMatching <- filter(data, colMatch==1 & tgtPos==0)
+dataNonMatching <- filter(test, colMatch==1)
 write.csv(dataNonMatching, file = "HDDM Non-Matching.csv", row.names = FALSE)
 
 
