@@ -5,7 +5,7 @@ This file loads in the ddm model for analyses
 import matplotlib.pyplot as plt
 import hddm
 
-m = hddm.load('Within RwdType Drift Rate: Non-matching target and color')
+m = hddm.load('Within RwdType Drift Rate')
 
 v_1, v_2 = m.nodes_db.loc[["v_Intercept", "v_C(rwdType, Treatment(1))[T.2]"], 'node']
 
